@@ -29,7 +29,9 @@ SECRET_KEY = 'django-insecure-_gq#fvm7vy%v=d1m9yqdfuzmefu4=vd%lizg&r6+$og3!1fgky
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['investment.staging.flashfund.in',
+    'localhost',
+    '127.0.0.1',]
 
 
 # Application definition
