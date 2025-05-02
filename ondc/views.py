@@ -114,9 +114,12 @@ logger = logging.getLogger(__name__)
 
 class OnSearchView(APIView):
     def post(self, request, *args, **kwargs):
-        data = request.data
-        logger.info("Received on_search callback: %s", data)
-        
-        # TODO: Validate ONDC schema, store or trigger business logic
+        try:
+            data = request.data  
+            logger.info(" Received on_search callback:\n%s", json.dumps(data, indent=2))
+            print(" Received on_search callback:\n", json.dumps(data, indent=2))
+        except Exception as e:
+            logger.error("❌ Failed to log on_search data: %s", str(e))
+            return Response({"error": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"message": "on_search received"}, status=status.HTTP_200_OK)
