@@ -4,6 +4,7 @@ from rest_framework import status
 from django.utils.dateparse import parse_datetime
 import uuid, json, os, requests
 from datetime import datetime
+import logging
 
 from .models import Transaction, Message  # your Django models
 from .cryptic_utils import create_authorisation_header  # assuming this is your custom utility
@@ -109,3 +110,13 @@ class ONDCSearchView(APIView):
 
 
 
+logger = logging.getLogger(__name__)
+
+class OnSearchView(APIView):
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        logger.info("Received on_search callback: %s", data)
+        
+        # TODO: Validate ONDC schema, store or trigger business logic
+
+        return Response({"message": "on_search received"}, status=status.HTTP_200_OK)
