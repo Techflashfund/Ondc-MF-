@@ -171,8 +171,10 @@ class OnSearchView(APIView):
 
         return Response({"message": "on_search received"}, status=status.HTTP_200_OK)
 
-    def get(self, request, *args, **kwargs):
-        transaction_id = request.query_params.get("transaction_id")
+
+class OnSearchDataView(APIView):
+    def post(self, request, *args, **kwargs):
+        transaction_id = request.data.get("transaction_id")
         
         if not transaction_id:
             return Response({"error": "Missing transaction_id"}, status=status.HTTP_400_BAD_REQUEST)
