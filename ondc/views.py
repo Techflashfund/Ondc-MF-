@@ -173,6 +173,7 @@ class OnSearchView(APIView):
 
     def get(self, request, *args, **kwargs):
         transaction_id = request.query_params.get("transaction_id")
+        
         if not transaction_id:
             return Response({"error": "Missing transaction_id"}, status=status.HTTP_400_BAD_REQUEST)
 
