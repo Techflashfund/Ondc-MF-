@@ -11,15 +11,15 @@ from .models import Transaction, Message, FullOnSearch  # your Django models
 from .cryptic_utils import create_authorisation_header  # assuming this is your custom utility
 
 class ONDCSearchView(APIView):
-    def post(self, request,transaction_id=None,message_id=None, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
 
-        if transaction_id is None or message_id is None:
+        transaction_id = request.data.get('transaction_id')
+        message_id = request.data.get('message_id')
+
+        if not transaction_id or not message_id:
             transaction_id = str(uuid.uuid4())
             message_id = str(uuid.uuid4())
-        else:
-            print('hai')
-            transaction_id = transaction_id
-            message_id = message_id
+        
         timestamp = datetime.utcnow().isoformat(sep="T", timespec="seconds") + "Z"
 
         # Prepare payload
