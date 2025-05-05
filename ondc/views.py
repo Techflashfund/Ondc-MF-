@@ -6,7 +6,7 @@ import uuid, json, os, requests
 from datetime import datetime
 import logging
 
-from .models import Transaction, Message  # your Django models
+from .models import Transaction, Message, FullOnSearch  # your Django models
 from .cryptic_utils import create_authorisation_header  # assuming this is your custom utility
 
 class ONDCSearchView(APIView):
@@ -112,14 +112,57 @@ class ONDCSearchView(APIView):
 
 logger = logging.getLogger(__name__)
 
+# class OnSearchView(APIView):
+#     def post(self, request, *args, **kwargs):
+#         try:
+#             data = request.data  
+#             logger.info(" Received on_search callback:\n%s", json.dumps(data, indent=2))
+#             print(" Received on_search callback:\n", json.dumps(data, indent=2))
+#         except Exception as e:
+#             logger.error(" Failed to log on_search data: %s", str(e))
+#             return Response({"error": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
+
+#         return Response({"message": "on_search received"}, status=status.HTTP_200_OK)
+    
 class OnSearchView(APIView):
     def post(self, request, *args, **kwargs):
         try:
             data = request.data  
-            logger.info(" Received on_search callback:\n%s", json.dumps(data, indent=2))
-            print(" Received on_search callback:\n", json.dumps(data, indent=2))
+            logger.info("Received on_search callback:\n%s", json.dumps(data, indent=2))
+            print("Received on_search callback:\n", json.dumps(data, indent=2))
+
+            context = data.get("context", {})
+            message_id = context.get("message_id")
+            transaction_id = context.get("transaction_id")
+            timestamp_str = context.get("timestamp")
+
+            # Validate required fields
+            if not all([message_id, transaction_id, timestamp_str]):
+                return Response({"error": "Missing required fields in context"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Parse timestamp
+            timestamp = parse_datetime(timestamp_str)
+            if not timestamp:
+                return Response({"error": "Invalid timestamp format"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Get related transaction
+            try:
+                transaction = Transaction.objects.get(transaction_id=transaction_id)
+            except Transaction.DoesNotExist:
+                return Response({"error": "Transaction not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            # Save to database
+            FullOnSearch.objects.create(
+                transaction=transaction,
+                message_id=message_id,
+                payload=data,
+                timestamp=timestamp
+            )
+
         except Exception as e:
-            logger.error("❌ Failed to log on_search data: %s", str(e))
-            return Response({"error": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
+            logger.error("Failed to process on_search data: %s", str(e))
+            return Response({"error": "Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({"message": "on_search received"}, status=status.HTTP_200_OK)
+
+             
