@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.utils.dateparse import parse_datetime
 import uuid, json, os, requests
+from django.core.exceptions import ObjectDoesNotExist
 from datetime import datetime
 import logging
 
@@ -165,4 +166,28 @@ class OnSearchView(APIView):
 
         return Response({"message": "on_search received"}, status=status.HTTP_200_OK)
 
-             
+    def get(self, request, *args, **kwargs):
+        transaction_id = request.query_params.get("transaction_id")
+        if not transaction_id:
+            return Response({"error": "Missing transaction_id"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            transaction = Transaction.objects.get(transaction_id=transaction_id)
+            search_entries = FullOnSearch.objects.filter(transaction=transaction)
+
+            response_data = []
+            for entry in search_entries:
+                response_data.append({
+                    "message_id": entry.message_id,
+                    "timestamp": entry.timestamp,
+                    "payload": entry.payload
+                })
+
+            return Response(response_data, status=status.HTTP_200_OK)
+
+        except ObjectDoesNotExist:
+            return Response({"error": "Transaction not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error("Failed to fetch FullOnSearch data: %s", str(e))
+            return Response({"error": "Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
