@@ -10,6 +10,7 @@ import logging
 
 from .models import Transaction, Message, FullOnSearch  # your Django models
 from .cryptic_utils import create_authorisation_header  # assuming this is your custom utility
+from .requestbodies import select_message
 
 class ONDCSearchView(APIView):
     def post(self, request, *args, **kwargs):
@@ -246,10 +247,90 @@ class SIPCreationView(APIView):
         "bpp_uri": bpp_uri,
         "action": "select"
     },
-            "message": {
-                # Add your specific message content here
+        "message": {
+  "order": {
+    "provider": {
+      "id": "sellerapp_id"
+    },
+    "items": [
+      {
+        "id": "12391",
+        "quantity": {
+          "selected": {
+            "measure": {
+              "value": "3000",
+              "unit": "INR"
             }
+          }
         }
+      }
+    ],
+    "fulfillments": [
+      {
+        "id": "ff_123",
+        "type": "SIP",
+        "customer": {
+          "person": {
+            "id": "pan:arrpp7771n"
+          }
+        },
+        "agent": {
+          "person": {
+            "id": "euin:E52432"
+          },
+          "organization": {
+            "creds": [
+              {
+                "id": "ARN-124567",
+                "type": "ARN"
+              },
+              {
+                "id": "ARN-123456",
+                "type": "SUB_BROKER_ARN"
+              }
+            ]
+          }
+        },
+        "stops": [
+          {
+            "time": {
+              "schedule": {
+                "frequency": "R6/2024-05-15/P1M"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "tags": [
+      {
+        "display": False,
+        "descriptor": {
+          "name": "BAP Terms of Engagement",
+          "code": "BAP_TERMS"
+        },
+        "list": [
+          {
+            "descriptor": {
+              "name": "Static Terms (Transaction Level)",
+              "code": "STATIC_TERMS"
+            },
+            "value": "https://buyerapp.com/legal/ondc:fis14/static_terms?v=0.1"
+          },
+          {
+            "descriptor": {
+              "name": "Offline Contract",
+              "code": "OFFLINE_CONTRACT"
+            },
+            "value": "true"
+          }
+        ]
+      }
+    ]
+  }
+}
+
+}
 
         # Store transaction and message
         transaction, _ = Transaction.objects.get_or_create(transaction_id=transaction_id)
@@ -311,6 +392,7 @@ class OnSelectSIPView(APIView):
                 transaction = Transaction.objects.get(transaction_id=transaction_id)
             except Transaction.DoesNotExist:
                 return Response({"error": "Transaction not found"}, status=status.HTTP_404_NOT_FOUND)
+
 
         except Exception as e:
             logger.error("Failed to process on_select data: %s", str(e))
