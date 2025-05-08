@@ -215,7 +215,7 @@ class SIPCreationView(APIView):
         bpp_uri= request.data.get('bpp_uri')
         
 
-        if not transaction_id or not bpp_id or not bpp_uri:
+        if not all([transaction_id or not bpp_id or not bpp_uri]):
             return Response({"error": "transaction_id  required"}, status=status.HTTP_400_BAD_REQUEST)
 
         
@@ -278,10 +278,42 @@ class SIPCreationView(APIView):
             data=response.json()
         except json.JSONDecodeError:
             print("Invalid JSON response:", response.text)
-            return JsonResponse({"error": "Invalid JSON received from external service"}, status=502)
+            return Response({"error": "Invalid JSON received from external service"}, status=502)
         return Response({
             "status_code": response.status_code,
             "response": response.json() if response.content else {},
             "sent_headers": headers,
             "sent_body": payload
         }, status=status.HTTP_200_OK)
+    
+
+class OnSelectSIPView(APIView):
+    def post(self, request, *args, **kwargs):
+        try:
+            data = request.data  
+            
+            context = data.get("context", {})
+            message_id = context.get("message_id")
+            transaction_id = context.get("transaction_id")
+            timestamp_str = context.get("timestamp")
+
+            # Validate required fields
+            if not all([message_id, transaction_id, timestamp_str]):
+                return Response({"error": "Missing required fields in context"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Parse timestamp
+            timestamp = parse_datetime(timestamp_str)
+            if not timestamp:
+                return Response({"error": "Invalid timestamp format"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Get related transaction
+            try:
+                transaction = Transaction.objects.get(transaction_id=transaction_id)
+            except Transaction.DoesNotExist:
+                return Response({"error": "Transaction not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        except Exception as e:
+            logger.error("Failed to process on_select data: %s", str(e))
+            return Response({"error": "Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({"message": "on_select received"}, status=status.HTTP_200_OK)
