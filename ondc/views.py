@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.utils.dateparse import parse_datetime
 import uuid, json, os, requests
+from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
 from datetime import datetime
 import logging
@@ -201,35 +202,50 @@ class OnSearchDataView(APIView):
 
 
 
-class ONDCIncrementSearchView(APIView):
+        
+
+
+    
+# SIP Creation
+
+class SIPCreationView(APIView):
     def post(self, request, *args, **kwargs):
         transaction_id = request.data.get('transaction_id')
-        message_id = request.data.get('message_id')
+        bpp_id = request.data.get('bpp_id')
+        bpp_uri= request.data.get('bpp_uri')
+        
 
-        if not transaction_id:
-            return Response({"error": "transaction_id and message_id are required"}, status=status.HTTP_400_BAD_REQUEST)
+        if not transaction_id or not bpp_id or not bpp_uri:
+            return Response({"error": "transaction_id  required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if not message_id:
-            message_id = str(uuid.uuid4())
+        
+        message_id = str(uuid.uuid4())
+
         timestamp = datetime.utcnow().isoformat(sep="T", timespec="seconds") + "Z"
 
         # Prepare payload
         payload = {
             "context": {
-                "location": {
-                    "country": {"code": "IND"},
-                    "city": {"code": "*"}
-                },
-                "domain": "ONDC:FIS14",
-                "timestamp": timestamp,
-                "bap_id": "investment.staging.flashfund.in",
-                "bap_uri": "https://investment.staging.flashfund.in/ondc",
-                "transaction_id": transaction_id,
-                "message_id": message_id,
-                "version": "2.0.0",
-                "ttl": "PT10M",
-                "action": "search"
+        "location": {
+            "country": {
+                "code": "IND"
             },
+            "city": {
+                "code": "*"
+            }
+        },
+        "domain": "ONDC:FIS14",
+        "timestamp": timestamp,
+        "bap_id": "investment.staging.flashfund.in",
+        "bap_uri": "https://investment.staging.flashfund.in/ondc",
+        "transaction_id": transaction_id,
+        "message_id": message_id,
+        "version": "2.0.0",
+        "ttl": "PT10M",
+        "bpp_id": bpp_id,
+        "bpp_uri": bpp_uri,
+        "action": "select"
+    },
             "message": {
                 # Add your specific message content here
             }
@@ -240,7 +256,7 @@ class ONDCIncrementSearchView(APIView):
         Message.objects.create(
             transaction=transaction,
             message_id=message_id,
-            action="search",
+            action="select",
             timestamp=parse_datetime(timestamp),
             payload=payload
         )
@@ -256,12 +272,16 @@ class ONDCIncrementSearchView(APIView):
             "X-Gateway-Subscriber-Id": os.getenv("SUBSCRIBER_ID")
         }
 
-        response = requests.post("https://staging.gateway.proteantech.in/search", data=request_body_str, headers=headers)
+        response = requests.post(f"{bpp_uri}/select", data=request_body_str, headers=headers)
 
+        try:
+            data=response.json()
+        except json.JSONDecodeError:
+            print("Invalid JSON response:", response.text)
+            return JsonResponse({"error": "Invalid JSON received from external service"}, status=502)
         return Response({
             "status_code": response.status_code,
             "response": response.json() if response.content else {},
             "sent_headers": headers,
             "sent_body": payload
         }, status=status.HTTP_200_OK)
-        
