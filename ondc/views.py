@@ -216,7 +216,7 @@ class SIPCreationView(APIView):
         bpp_uri= request.data.get('bpp_uri')
         
 
-        if not all([transaction_id or not bpp_id or not bpp_uri]):
+        if not all([transaction_id, bpp_id, bpp_uri]):
             return Response({"error": "transaction_id  required"}, status=status.HTTP_400_BAD_REQUEST)
 
         
