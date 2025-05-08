@@ -199,3 +199,69 @@ class OnSearchDataView(APIView):
             logger.error("Failed to fetch FullOnSearch data: %s", str(e))
             return Response({"error": "Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+
+class ONDCIncrementSearchView(APIView):
+    def post(self, request, *args, **kwargs):
+        transaction_id = request.data.get('transaction_id')
+        message_id = request.data.get('message_id')
+
+        if not transaction_id:
+            return Response({"error": "transaction_id and message_id are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not message_id:
+            message_id = str(uuid.uuid4())
+        timestamp = datetime.utcnow().isoformat(sep="T", timespec="seconds") + "Z"
+
+        # Prepare payload
+        payload = {
+            "context": {
+                "location": {
+                    "country": {"code": "IND"},
+                    "city": {"code": "*"}
+                },
+                "domain": "ONDC:FIS14",
+                "timestamp": timestamp,
+                "bap_id": "investment.staging.flashfund.in",
+                "bap_uri": "https://investment.staging.flashfund.in/ondc",
+                "transaction_id": transaction_id,
+                "message_id": message_id,
+                "version": "2.0.0",
+                "ttl": "PT10M",
+                "action": "search"
+            },
+            "message": {
+                # Add your specific message content here
+            }
+        }
+
+        # Store transaction and message
+        transaction, _ = Transaction.objects.get_or_create(transaction_id=transaction_id)
+        Message.objects.create(
+            transaction=transaction,
+            message_id=message_id,
+            action="search",
+            timestamp=parse_datetime(timestamp),
+            payload=payload
+        )
+
+        # Send to gateway
+        request_body_str = json.dumps(payload, separators=(',', ':'))
+        auth_header = create_authorisation_header(request_body=request_body_str)
+
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": auth_header,
+            "X-Gateway-Authorization": os.getenv("SIGNED_UNIQUE_REQ_ID", ""),
+            "X-Gateway-Subscriber-Id": os.getenv("SUBSCRIBER_ID")
+        }
+
+        response = requests.post("https://staging.gateway.proteantech.in/search", data=request_body_str, headers=headers)
+
+        return Response({
+            "status_code": response.status_code,
+            "response": response.json() if response.content else {},
+            "sent_headers": headers,
+            "sent_body": payload
+        }, status=status.HTTP_200_OK)
+        
