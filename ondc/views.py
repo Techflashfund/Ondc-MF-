@@ -286,36 +286,112 @@ class SIPCreationView(APIView):
             "sent_headers": headers,
             "sent_body": payload
         }, status=status.HTTP_200_OK)
-    
+
+
+logger = logging.getLogger(__name__)
 
 class OnSelectSIPView(APIView):
     def post(self, request, *args, **kwargs):
         try:
-            data = request.data  
+            data = request.data
+            logger.info("Received on_select payload: %s", data)
+
             
             context = data.get("context", {})
             message_id = context.get("message_id")
             transaction_id = context.get("transaction_id")
             timestamp_str = context.get("timestamp")
+            action = context.get("action")
 
-            # Validate required fields
-            if not all([message_id, transaction_id, timestamp_str]):
-                return Response({"error": "Missing required fields in context"}, status=status.HTTP_400_BAD_REQUEST)
+            if not all([message_id, transaction_id, timestamp_str, action]):
+                return Response(
+                    {"error": "Missing required fields in context"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-            # Parse timestamp
+            if action != "on_select":
+                return Response(
+                    {"error": "Invalid action. Expected 'on_select'"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # --- Validate Timestamp ---
             timestamp = parse_datetime(timestamp_str)
             if not timestamp:
-                return Response({"error": "Invalid timestamp format"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": "Invalid timestamp format"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-            # Get related transaction
+            # --- Validate Transaction (Optional) ---
             try:
                 transaction = Transaction.objects.get(transaction_id=transaction_id)
             except Transaction.DoesNotExist:
-                return Response({"error": "Transaction not found"}, status=status.HTTP_404_NOT_FOUND)
+                logger.warning("Transaction not found: %s", transaction_id)
+                
+                return Response(
+                    {"error": "Transaction not found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
+            # --- Validate Message.Order (SIP-Specific Checks) ---
+            message = data.get("message", {})
+            order = message.get("order", {})
+            
+            
+            items = order.get("items", [])
+            if not items:
+                return Response(
+                    {"error": "No items in order"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # 2. Validate SIP investment amount
+            first_item = items[0]
+            selected_quantity = first_item.get("quantity", {}).get("selected", {})
+            amount = selected_quantity.get("measure", {}).get("value")
+            if not amount or float(amount) <= 0:
+                return Response(
+                    {"error": "Invalid investment amount"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            
+            fulfillments = order.get("fulfillments", [])
+            if not fulfillments:
+                return Response(
+                    {"error": "No fulfillments provided"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            
+            xinput = order.get("xinput", {})
+            if not xinput.get("form", {}).get("url"):
+                return Response(
+                    {"error": "Missing account opening form URL"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # --- Success: Return ONDC-Compliant ACK ---
+            response_data = {
+                "message": {
+                    "ack": {
+                        "status": "ACK"  # Or "NACK" with a description if validation fails
+                    }
+                }
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
 
         except Exception as e:
-            logger.error("Failed to process on_select data: %s", str(e))
-            return Response({"error": "Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        return Response({"message": "on_select received",'data':data} ,status=status.HTTP_200_OK)
+            logger.error("Failed to process on_select: %s", str(e), exc_info=True)
+            return Response(
+                {
+                    "message": {
+                        "ack": {
+                            "status": "NACK",
+                            "description": "Internal server error"
+                        }
+                    }
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
