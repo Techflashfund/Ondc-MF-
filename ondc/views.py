@@ -225,8 +225,6 @@ class SIPCreationView(APIView):
         if not all([bpp_id or  bpp_uri]):
             return Response({"error": "transaction_id  required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        message_id = str(uuid.uuid4())
-
         timestamp = datetime.utcnow().isoformat(sep="T", timespec="seconds") + "Z"
 
         # Prepare payload
