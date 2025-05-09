@@ -225,21 +225,27 @@ class SIPCreationView(APIView):
         timestamp = datetime.utcnow().isoformat(sep="T", timespec="seconds") + "Z"
 
         # Prepare payload
-        payload =  {
+        payload = {
   "context": {
+    "location": {
+      "country": {
+        "code": "IND"
+      },
+      "city": {
+        "code": "*"
+      }
+    },
     "domain": "ONDC:FIS14",
-    "country": "IND",
-    "city": "*",
-    "action": "select",
-    "core_version": "2.0.0",
+    "timestamp": timestamp,
     "bap_id": "investment.staging.flashfund.in",
     "bap_uri": "https://investment.staging.flashfund.in/ondc",
     "transaction_id": transaction_id,
     "message_id": message_id,
-    "timestamp": timestamp,
+    "version": "2.0.0",
     "ttl": "PT10M",
     "bpp_id": bpp_id,
-    "bpp_uri": bpp_uri
+    "bpp_uri":bpp_uri,
+    "action": "select"
   },
   "message": {
     "order": {
@@ -249,6 +255,7 @@ class SIPCreationView(APIView):
       "items": [
         {
           "id": "12391",
+          "fulfillment_ids": ["ff_123"],
           "quantity": {
             "selected": {
               "measure": {
@@ -256,8 +263,7 @@ class SIPCreationView(APIView):
                 "unit": "INR"
               }
             }
-          },
-          "fulfillment_id": "ff_123"
+          }
         }
       ],
       "fulfillments": [
@@ -325,7 +331,7 @@ class SIPCreationView(APIView):
     }
   }
 }
-        
+
         # Store transaction and message
         transaction, _ = Transaction.objects.get_or_create(transaction_id=transaction_id)
         Message.objects.create(
@@ -367,14 +373,15 @@ class OnSelectSIPView(APIView):
         try:
             data = request.data
             logger.info("Received on_select payload: %s", data)
-            print("Received on_select payload: ", data)
-            
+            print("Received on_select payload:", json.dumps(data, indent=2))
+
             context = data.get("context", {})
             message_id = context.get("message_id")
             transaction_id = context.get("transaction_id")
             timestamp_str = context.get("timestamp")
             action = context.get("action")
 
+            # Validate context fields
             if not all([message_id, transaction_id, timestamp_str, action]):
                 return Response(
                     {"error": "Missing required fields in context"},
@@ -387,7 +394,7 @@ class OnSelectSIPView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # --- Validate Timestamp ---
+            # Validate timestamp
             timestamp = parse_datetime(timestamp_str)
             if not timestamp:
                 return Response(
@@ -395,22 +402,20 @@ class OnSelectSIPView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # --- Validate Transaction (Optional) ---
+            # Validate transaction
             try:
                 transaction = Transaction.objects.get(transaction_id=transaction_id)
             except Transaction.DoesNotExist:
                 logger.warning("Transaction not found: %s", transaction_id)
-                
                 return Response(
                     {"error": "Transaction not found"},
                     status=status.HTTP_404_NOT_FOUND
                 )
 
-            # --- Validate Message.Order (SIP-Specific Checks) ---
+            # Validate message.order
             message = data.get("message", {})
             order = message.get("order", {})
-            
-            
+
             items = order.get("items", [])
             if not items:
                 return Response(
@@ -418,7 +423,7 @@ class OnSelectSIPView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # 2. Validate SIP investment amount
+            # Validate investment amount
             first_item = items[0]
             selected_quantity = first_item.get("quantity", {}).get("selected", {})
             amount = selected_quantity.get("measure", {}).get("value")
@@ -428,7 +433,7 @@ class OnSelectSIPView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            
+            # Validate fulfillments
             fulfillments = order.get("fulfillments", [])
             if not fulfillments:
                 return Response(
@@ -436,23 +441,27 @@ class OnSelectSIPView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # 4. Ensure xinput.form.url exists (account opening form)
+            # Validate xinput.form.url
             xinput = order.get("xinput", {})
-            if not xinput.get("form", {}).get("url"):
+            form_url = xinput.get("form", {}).get("url")
+            if not form_url:
                 return Response(
-                    {"error": "Missing account opening form URL"},
+                    {"error": "Missing account opening form URL in xinput.form.url"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # --- Success: Return ONDC-Compliant ACK ---
-            response_data = {
-                "message": {
-                    "ack": {
-                        "status": "ACK"  # Or "NACK" with a description if validation fails
+            # If all validations pass
+            logger.info("on_select validation passed, sending ACK")
+            return Response(
+                {
+                    "message": {
+                        "ack": {
+                            "status": "ACK"
+                        }
                     }
-                }
-            }
-            return Response(response_data, status=status.HTTP_200_OK)
+                },
+                status=status.HTTP_200_OK
+            )
 
         except Exception as e:
             logger.error("Failed to process on_select: %s", str(e), exc_info=True)
