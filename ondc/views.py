@@ -318,4 +318,4 @@ class OnSelectSIPView(APIView):
             logger.error("Failed to process on_select data: %s", str(e))
             return Response({"error": "Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        return Response({"message": "on_select received"}, status=status.HTTP_200_OK)
+        return Response({"message": "on_select received"},data, status=status.HTTP_200_OK)
