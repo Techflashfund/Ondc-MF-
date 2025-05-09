@@ -212,14 +212,19 @@ class OnSearchDataView(APIView):
 class SIPCreationView(APIView):
     def post(self, request, *args, **kwargs):
         transaction_id = request.data.get('transaction_id')
+        message_id = request.data.get('message_id')
+
+        if not transaction_id or not message_id:
+            transaction_id = str(uuid.uuid4())
+            message_id = str(uuid.uuid4())
+
         bpp_id = request.data.get('bpp_id')
         bpp_uri= request.data.get('bpp_uri')
         
 
-        if not all([transaction_id or  bpp_id or  bpp_uri]):
+        if not all([bpp_id or  bpp_uri]):
             return Response({"error": "transaction_id  required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        
         message_id = str(uuid.uuid4())
 
         timestamp = datetime.utcnow().isoformat(sep="T", timespec="seconds") + "Z"
@@ -253,7 +258,7 @@ class SIPCreationView(APIView):
         }
 
         # Store transaction and message
-        transaction, _ = Transaction.objects.get_or_create(transaction_id=transaction_id)
+        transaction = Transaction.objects.create(transaction_id=transaction_id)
         Message.objects.create(
             transaction=transaction,
             message_id=message_id,
@@ -283,8 +288,6 @@ class SIPCreationView(APIView):
         return Response({
             "status_code": response.status_code,
             "response": response.json() if response.content else {},
-            "sent_headers": headers,
-            "sent_body": payload
         }, status=status.HTTP_200_OK)
 
 
@@ -295,8 +298,8 @@ class OnSelectSIPView(APIView):
         logger.info("Raw request data: %s", request.body)  
         try:
             data = request.data
-            logger.info("Received on_select payload: %s", data)
-
+            logger.info("Received on_search callback:\n%s", json.dumps(data, indent=2))
+            print("Received on_search callback:\n", json.dumps(data, indent=2))
             
             context = data.get("context", {})
             message_id = context.get("message_id")
