@@ -226,31 +226,110 @@ class SIPCreationView(APIView):
 
         # Prepare payload
         payload = {
-            "context": {
-        "location": {
-            "country": {
-                "code": "IND"
-            },
-            "city": {
-                "code": "*"
-            }
-        },
-        "domain": "ONDC:FIS14",
-        "timestamp": timestamp,
-        "bap_id": "investment.staging.flashfund.in",
-        "bap_uri": "https://investment.staging.flashfund.in/ondc",
-        "transaction_id": transaction_id,
-        "message_id": message_id,
-        "version": "2.0.0",
-        "ttl": "PT10M",
-        "bpp_id": bpp_id,
-        "bpp_uri": bpp_uri,
-        "action": "select"
+  "context": {
+    "location": {
+      "country": {
+        "code": "IND"
+      },
+      "city": {
+        "code": "*"
+      }
     },
-            "message": {
-                # Add your specific message content here
+    "domain": "ONDC:FIS14",
+    "timestamp": timestamp,
+    "bap_id": "investment.staging.flashfund.in",
+    "bap_uri": "https://investment.staging.flashfund.in/ondc",
+    "transaction_id": transaction_id,
+    "message_id": message_id,
+    "version": "2.0.0",
+    "ttl": "PT10M",
+    "bpp_id": bpp_id,
+    "bpp_uri":bpp_uri,
+    "action": "select"
+  },
+  "message": {
+    "order": {
+      "provider": {
+        "id": "sellerapp_id"
+      },
+      "items": [
+        {
+          "id": "12391",
+          "quantity": {
+            "selected": {
+              "measure": {
+                "value": "3000",
+                "unit": "INR"
+              }
             }
+          }
         }
+      ],
+      "fulfillments": [
+        {
+          "id": "ff_123",
+          "type": "SIP",
+          "customer": {
+            "person": {
+              "id": "pan:arrpp7771n"
+            }
+          },
+          "agent": {
+            "person": {
+              "id": "euin:E52432"
+            },
+            "organization": {
+              "creds": [
+                {
+                  "id": "ARN-124567",
+                  "type": "ARN"
+                },
+                {
+                  "id": "ARN-123456",
+                  "type": "SUB_BROKER_ARN"
+                }
+              ]
+            }
+          },
+          "stops": [
+            {
+              "time": {
+                "schedule": {
+                  "frequency": "R6/2024-05-15/P1M"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "display": False,
+          "descriptor": {
+            "name": "BAP Terms of Engagement",
+            "code": "BAP_TERMS"
+          },
+          "list": [
+            {
+              "descriptor": {
+                "name": "Static Terms (Transaction Level)",
+                "code": "STATIC_TERMS"
+              },
+              "value": "https://buyerapp.com/legal/ondc:fis14/static_terms?v=0.1"
+            },
+            {
+              "descriptor": {
+                "name": "Offline Contract",
+                "code": "OFFLINE_CONTRACT"
+              },
+              "value": "true"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
 
         # Store transaction and message
         transaction, _ = Transaction.objects.get_or_create(transaction_id=transaction_id)
@@ -283,8 +362,6 @@ class SIPCreationView(APIView):
         return Response({
             "status_code": response.status_code,
             "response": response.json() if response.content else {},
-            "sent_headers": headers,
-            "sent_body": payload
         }, status=status.HTTP_200_OK)
 
 
