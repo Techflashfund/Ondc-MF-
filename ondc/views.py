@@ -216,7 +216,7 @@ class SIPCreationView(APIView):
         bpp_uri= request.data.get('bpp_uri')
         
 
-        if not all([transaction_id, bpp_id, bpp_uri]):
+        if not all([transaction_id or  bpp_id or  bpp_uri]):
             return Response({"error": "transaction_id  required"}, status=status.HTTP_400_BAD_REQUEST)
 
         
@@ -247,90 +247,10 @@ class SIPCreationView(APIView):
         "bpp_uri": bpp_uri,
         "action": "select"
     },
-        "message": {
-  "order": {
-    "provider": {
-      "id": "sellerapp_id"
-    },
-    "items": [
-      {
-        "id": "12391",
-        "quantity": {
-          "selected": {
-            "measure": {
-              "value": "3000",
-              "unit": "INR"
+            "message": {
+                # Add your specific message content here
             }
-          }
         }
-      }
-    ],
-    "fulfillments": [
-      {
-        "id": "ff_123",
-        "type": "SIP",
-        "customer": {
-          "person": {
-            "id": "pan:arrpp7771n"
-          }
-        },
-        "agent": {
-          "person": {
-            "id": "euin:E52432"
-          },
-          "organization": {
-            "creds": [
-              {
-                "id": "ARN-124567",
-                "type": "ARN"
-              },
-              {
-                "id": "ARN-123456",
-                "type": "SUB_BROKER_ARN"
-              }
-            ]
-          }
-        },
-        "stops": [
-          {
-            "time": {
-              "schedule": {
-                "frequency": "R6/2024-05-15/P1M"
-              }
-            }
-          }
-        ]
-      }
-    ],
-    "tags": [
-      {
-        "display": False,
-        "descriptor": {
-          "name": "BAP Terms of Engagement",
-          "code": "BAP_TERMS"
-        },
-        "list": [
-          {
-            "descriptor": {
-              "name": "Static Terms (Transaction Level)",
-              "code": "STATIC_TERMS"
-            },
-            "value": "https://buyerapp.com/legal/ondc:fis14/static_terms?v=0.1"
-          },
-          {
-            "descriptor": {
-              "name": "Offline Contract",
-              "code": "OFFLINE_CONTRACT"
-            },
-            "value": "true"
-          }
-        ]
-      }
-    ]
-  }
-}
-
-}
 
         # Store transaction and message
         transaction, _ = Transaction.objects.get_or_create(transaction_id=transaction_id)
