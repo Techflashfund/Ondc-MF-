@@ -225,27 +225,21 @@ class SIPCreationView(APIView):
         timestamp = datetime.utcnow().isoformat(sep="T", timespec="seconds") + "Z"
 
         # Prepare payload
-        payload = {
+        payload =  {
   "context": {
-    "location": {
-      "country": {
-        "code": "IND"
-      },
-      "city": {
-        "code": "*"
-      }
-    },
     "domain": "ONDC:FIS14",
-    "timestamp": timestamp,
+    "country": "IND",
+    "city": "*",
+    "action": "select",
+    "core_version": "2.0.0",
     "bap_id": "investment.staging.flashfund.in",
     "bap_uri": "https://investment.staging.flashfund.in/ondc",
-    "transaction_id": transaction_id,
-    "message_id": message_id,
-    "version": "2.0.0",
+    "transaction_id": "<transaction_id>",
+    "message_id": "<message_id>",
+    "timestamp": "<timestamp>",
     "ttl": "PT10M",
-    "bpp_id": bpp_id,
-    "bpp_uri":bpp_uri,
-    "action": "select"
+    "bpp_id": "<bpp_id>",
+    "bpp_uri": "<bpp_uri>"
   },
   "message": {
     "order": {
@@ -262,7 +256,8 @@ class SIPCreationView(APIView):
                 "unit": "INR"
               }
             }
-          }
+          },
+          "fulfillment_id": "ff_123"
         }
       ],
       "fulfillments": [
@@ -330,7 +325,7 @@ class SIPCreationView(APIView):
     }
   }
 }
-
+        
         # Store transaction and message
         transaction, _ = Transaction.objects.get_or_create(transaction_id=transaction_id)
         Message.objects.create(
