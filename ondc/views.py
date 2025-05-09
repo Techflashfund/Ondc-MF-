@@ -292,6 +292,7 @@ logger = logging.getLogger(__name__)
 
 class OnSelectSIPView(APIView):
     def post(self, request, *args, **kwargs):
+        logger.info("Raw request data: %s", request.body)  
         try:
             data = request.data
             logger.info("Received on_select payload: %s", data)
