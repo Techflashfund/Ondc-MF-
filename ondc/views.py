@@ -213,16 +213,18 @@ class SIPCreationView(APIView):
     def post(self, request, *args, **kwargs):
         transaction_id = request.data.get('transaction_id')
         message_id = request.data.get('message_id')
-
+        
         if not transaction_id or not message_id:
             transaction_id = str(uuid.uuid4())
             message_id = str(uuid.uuid4())
-
+        
+        if Message.objects.filter(message_id=message_id).exists():
+                return Response({"error": "message_id already exists. Must be unique."}, status=status.HTTP_400_BAD_REQUEST)
         bpp_id = request.data.get('bpp_id')
         bpp_uri= request.data.get('bpp_uri')
         
 
-        if not all([bpp_id or  bpp_uri]):
+        if not all([bpp_id,bpp_uri]):
             return Response({"error": "transaction_id  required"}, status=status.HTTP_400_BAD_REQUEST)
 
         timestamp = datetime.utcnow().isoformat(sep="T", timespec="seconds") + "Z"
@@ -264,7 +266,7 @@ class SIPCreationView(APIView):
             timestamp=parse_datetime(timestamp),
             payload=payload
         )
-
+        
         # Send to gateway
         request_body_str = json.dumps(payload, separators=(',', ':'))
         auth_header = create_authorisation_header(request_body=request_body_str)
