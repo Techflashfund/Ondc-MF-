@@ -211,7 +211,7 @@ class SIPCreationView(APIView):
         timestamp = datetime.utcnow().isoformat(sep="T", timespec="seconds") + "Z"
 
         # Prepare payload
-        payload={{
+        payload={
   "context": {
     "location": {
       "country": {
@@ -315,7 +315,7 @@ class SIPCreationView(APIView):
       ]
     }
   }
-}}
+}
         # Store transaction and message
         transaction, _ = Transaction.objects.get_or_create(transaction_id=transaction_id)
         Message.objects.create(
