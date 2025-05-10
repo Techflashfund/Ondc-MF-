@@ -241,6 +241,7 @@ class SIPCreationView(APIView):
       "items": [
         {
           "id": "12391",
+          "fulfillment_ids": ["ff_123"],
           "quantity": {
             "selected": {
               "measure": {
