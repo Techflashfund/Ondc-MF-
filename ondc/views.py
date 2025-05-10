@@ -22,7 +22,8 @@ class ONDCSearchView(APIView):
             transaction_id = str(uuid.uuid4())
             message_id = str(uuid.uuid4())
         
-        timestamp = datetime.utcnow().isoformat(sep="T", timespec="seconds") + "Z"
+        timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
+
 
         # Prepare payload
         payload = {
@@ -208,7 +209,7 @@ class SIPCreationView(APIView):
         
         message_id = str(uuid.uuid4())
 
-        timestamp = datetime.utcnow().isoformat(sep="T", timespec="seconds") + "Z"
+        timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
 
         # Prepare payload
         payload={
