@@ -222,15 +222,15 @@ class SIPCreationView(APIView):
       }
     },
     "domain": "ONDC:FIS14",
-    "timestamp": "2023-05-25T05:23:03.443Z",
-    "bap_id": "api.buyerapp.com",
-    "bap_uri": "https://api.buyerapp.com/ondc",
-    "transaction_id": "a9aaecca-10b7-4d19-b640-b047a7c62196",
-    "message_id": "bb579fb8-cb82-4824-be12-fcbc405b6608",
+    "timestamp": timestamp,
+    "bap_id": "investment.staging.flashfund.in",
+    "bap_uri": "https://investment.staging.flashfund.in/ondc",
+    "transaction_id": transaction_id,
+    "message_id": message_id,
     "version": "2.0.0",
     "ttl": "PT10M",
-    "bpp_id": "api.sellerapp.com",
-    "bpp_uri": "https://api.sellerapp.com/ondc",
+    "bpp_id": bpp_id,
+    "bpp_uri": bpp_uri,
     "action": "select"
   },
   "message": {
