@@ -111,27 +111,13 @@ class ONDCSearchView(APIView):
 
         return Response({
             "status_code": response.status_code,
-            "response": response.json() if response.content else {},
-            "sent_headers": headers,
-            "sent_body": payload
+            "response": response.json() if response.content else {}
         }, status=status.HTTP_200_OK)
 
 
 
 logger = logging.getLogger(__name__)
 
-# class OnSearchView(APIView):
-#     def post(self, request, *args, **kwargs):
-#         try:
-#             data = request.data  
-#             logger.info(" Received on_search callback:\n%s", json.dumps(data, indent=2))
-#             print(" Received on_search callback:\n", json.dumps(data, indent=2))
-#         except Exception as e:
-#             logger.error(" Failed to log on_search data: %s", str(e))
-#             return Response({"error": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
-
-#         return Response({"message": "on_search received"}, status=status.HTTP_200_OK)
-    
 class OnSearchView(APIView):
     def post(self, request, *args, **kwargs):
         try:
@@ -225,7 +211,7 @@ class SIPCreationView(APIView):
         timestamp = datetime.utcnow().isoformat(sep="T", timespec="seconds") + "Z"
 
         # Prepare payload
-        payload = {
+        payload={{
   "context": {
     "location": {
       "country": {
@@ -236,15 +222,15 @@ class SIPCreationView(APIView):
       }
     },
     "domain": "ONDC:FIS14",
-    "timestamp": timestamp,
-    "bap_id": "investment.staging.flashfund.in",
-    "bap_uri": "https://investment.staging.flashfund.in/ondc",
-    "transaction_id": transaction_id,
-    "message_id": message_id,
+    "timestamp": "2023-05-25T05:23:03.443Z",
+    "bap_id": "api.buyerapp.com",
+    "bap_uri": "https://api.buyerapp.com/ondc",
+    "transaction_id": "a9aaecca-10b7-4d19-b640-b047a7c62196",
+    "message_id": "bb579fb8-cb82-4824-be12-fcbc405b6608",
     "version": "2.0.0",
     "ttl": "PT10M",
-    "bpp_id": bpp_id,
-    "bpp_uri":bpp_uri,
+    "bpp_id": "api.sellerapp.com",
+    "bpp_uri": "https://api.sellerapp.com/ondc",
     "action": "select"
   },
   "message": {
@@ -255,7 +241,6 @@ class SIPCreationView(APIView):
       "items": [
         {
           "id": "12391",
-          "fulfillment_ids": ["ff_123"],
           "quantity": {
             "selected": {
               "measure": {
@@ -330,8 +315,7 @@ class SIPCreationView(APIView):
       ]
     }
   }
-}
-
+}}
         # Store transaction and message
         transaction, _ = Transaction.objects.get_or_create(transaction_id=transaction_id)
         Message.objects.create(
@@ -360,10 +344,8 @@ class SIPCreationView(APIView):
         except json.JSONDecodeError:
             print("Invalid JSON response:", response.text)
             return Response({"error": "Invalid JSON received from external service"}, status=502)
-        return Response({
-            "status_code": response.status_code,
-            "response": response.json() if response.content else {},
-        }, status=status.HTTP_200_OK)
+        return Response(response.json(), status=response.status_code)
+        
 
 
 logger = logging.getLogger(__name__)
