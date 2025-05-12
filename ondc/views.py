@@ -248,7 +248,8 @@ class SIPCreationView(APIView):
       },
       "items": [
         {
-          "id": obj.payload["message"]["items"][0]["id"],
+          "id": obj.payload["message"]["providers"][0]["items"][0]["id"]
+,
           "quantity": {
             "selected": {
               "measure": {
