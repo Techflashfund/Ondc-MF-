@@ -248,7 +248,7 @@ class SIPCreationView(APIView):
       },
       "items": [
         {
-          "id": obj.payload["message"]["order"]["items"][0]["id"],
+          "id": obj.payload["message"]["items"][0]["id"],
           "quantity": {
             "selected": {
               "measure": {
@@ -261,26 +261,26 @@ class SIPCreationView(APIView):
       ],
       "fulfillments": [
         {
-          "id": obj.payload["message"]["order"]["fulfillments"][0]["id"],
-          "type": obj.payload["message"]["order"]["fulfillments"][0]["type"],
+          "id": obj.payload["message"]["fulfillments"][0]["id"],
+          "type": obj.payload["message"]["fulfillments"][0]["type"],
           "customer": {
             "person": {
-              "id":  obj.payload["message"]["order"]["fulfillments"][0]["customer"]["person"]["id"]
+              "id":  obj.payload["message"]["fulfillments"][0]["customer"]["person"]["id"]
             }
           },
           "agent": {
             "person": {
-              "id": obj.payload["message"]["order"]["fulfillments"][0]["agent"]["person"]["id"]
+              "id": obj.payload["message"]["fulfillments"][0]["agent"]["person"]["id"]
             },
             "organization": {
-              "creds":  obj.payload["message"]["order"]["fulfillments"][0]["agent"]["organization"]["creds"]
+              "creds":  obj.payload["message"]["fulfillments"][0]["agent"]["organization"]["creds"]
             }
           },
           "stops": [
             {
               "time": {
                 "schedule": {
-                  "frequency": obj.payload["message"]["order"]["fulfillments"][0]["stops"][0]["time"]["schedule"]["frequency"]
+                  "frequency": obj.payload["message"]["fulfillments"][0]["stops"][0]["time"]["schedule"]["frequency"]
 
                 }
               }
