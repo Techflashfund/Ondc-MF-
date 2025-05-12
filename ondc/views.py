@@ -198,7 +198,7 @@ class OnSearchDataView(APIView):
 # SIP Creation
 
 class SIPCreationView(APIView):
-    
+
     def post(self, request, *args, **kwargs):
         transaction_id = request.data.get('transaction_id')
         bpp_id = request.data.get('bpp_id')
@@ -217,13 +217,14 @@ class SIPCreationView(APIView):
         
         message_id = str(uuid.uuid4())
         timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
+        print(obj.payload)
 
         # Get the first provider and item
         provider = obj.payload["message"]["catalog"]["providers"][0]
         item = provider["items"][1]  # Using the second item which has fulfillment_ids reference
         
         # Get the SIP fulfillment (second fulfillment in the catalog)
-        sip_fulfillment = obj.payload["message"]["catalog"]["fulfillments"][1]  # SIP is at index 1
+        sip_fulfillment = obj.payload["message"]["catalog"]["providers"]["fulfillments"][1]  # SIP is at index 1
 
         payload = {
             "context": {
