@@ -244,7 +244,7 @@ class SIPCreationView(APIView):
   "message": {
     "order": {
       "provider": {
-        "id": obj.payload["message"]["catalog"]["providers"][0]["id"]
+        "id": obj.payload["message"]["providers"][0]["id"]
       },
       "items": [
         {
