@@ -9,7 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from datetime import datetime
 import logging
 
-from .models import Transaction, Message, FullOnSearch 
+from .models import Transaction, Message, FullOnSearch,SelectSIP
 from .cryptic_utils import create_authorisation_header  
 
 class ONDCSearchView(APIView):
@@ -425,6 +425,12 @@ class OnSelectSIPView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
+            SelectSIP.objects.create(
+                transaction=transaction,
+                message_id=message_id,
+                payload=data,
+                timestamp=timestamp
+            )
            
             # If all validations pass
             logger.info("on_select validation passed, sending ACK")
