@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.utils.dateparse import parse_datetime
 import uuid, json, os, requests
+from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
 from datetime import datetime
@@ -197,23 +198,28 @@ class OnSearchDataView(APIView):
 # SIP Creation
 
 class SIPCreationView(APIView):
-    def post(self, request, *args, **kwargs):
-        transaction_id = request.data.get('transaction_id')
-        bpp_id = request.data.get('bpp_id')
-        bpp_uri= request.data.get('bpp_uri')
-        fulfillment_ids= request.data.get('fulfillment_ids')
-        
+         def post(self,request,*args,**kwargs):
+             transaction_id = request.data.get('transaction_id')
+             bpp_id=request.data.get('bpp_id')
+             bpp_uri=request.data.get('bpp_uri')
 
-        if not all([transaction_id , bpp_id , bpp_uri,fulfillment_ids]):
-            return Response({"error": "transaction_id  required"}, status=status.HTTP_400_BAD_REQUEST)
+             if not all[transaction_id,bpp_id,bpp_uri]:
+                    return Response({"error":"Missing transaction_id ,bppid,bppuri"},status=status.HTTP_400_BAD_REQUEST)
+             
+             
+             obj = get_object_or_404(
+                        FullOnSearch,
+                        payload__context__bpp_id=bpp_id,
+                        payload__context__bpp_uri=bpp_uri,
+                        transaction__transaction_id=transaction_id
+                    )
+             if not obj.exists():
+                 return Response({"error":"Missing Transaction"},status=status.HTTP_400_BAD_REQUEST)
+             
+             message_id=str(uuid.uuid4())
+             timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
 
-        
-        message_id = str(uuid.uuid4())
-
-        timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
-
-        # Prepare payload
-        payload={
+             payload={
   "context": {
     "location": {
       "country": {
@@ -227,8 +233,8 @@ class SIPCreationView(APIView):
     "timestamp": timestamp,
     "bap_id": "investment.staging.flashfund.in",
     "bap_uri": "https://investment.staging.flashfund.in/ondc",
-    "transaction_id": transaction_id,
-    "message_id": message_id,
+    "transaction_id":transaction_id,
+    "message_id":message_id,
     "version": "2.0.0",
     "ttl": "PT10M",
     "bpp_id": bpp_id,
@@ -238,12 +244,11 @@ class SIPCreationView(APIView):
   "message": {
     "order": {
       "provider": {
-        "id": "sellerapp_id"
+        "id": obj.payload["message"]["catalog"]["providers"][0]["id"]
       },
       "items": [
         {
-          "id": "12391",
-        #   "fulfillment_ids": [fulfillment_ids],
+          "id": obj.payload["message"]["order"]["items"][0]["id"],
           "quantity": {
             "selected": {
               "measure": {
@@ -256,35 +261,27 @@ class SIPCreationView(APIView):
       ],
       "fulfillments": [
         {
-          "id": fulfillment_ids,
-          "type": "SIP",
+          "id": obj.payload["message"]["order"]["fulfillments"][0]["id"],
+          "type": obj.payload["message"]["order"]["fulfillments"][0]["type"],
           "customer": {
             "person": {
-              "id": "pan:arrpp7771n"
+              "id":  obj.payload["message"]["order"]["fulfillments"][0]["customer"]["person"]["id"]
             }
           },
           "agent": {
             "person": {
-              "id": "euin:E52432"
+              "id": obj.payload["message"]["order"]["fulfillments"][0]["agent"]["person"]["id"]
             },
             "organization": {
-              "creds": [
-                {
-                  "id": "ARN-124567",
-                  "type": "ARN"
-                },
-                {
-                  "id": "ARN-123456",
-                  "type": "SUB_BROKER_ARN"
-                }
-              ]
+              "creds":  obj.payload["message"]["order"]["fulfillments"][0]["agent"]["organization"]["creds"]
             }
           },
           "stops": [
             {
               "time": {
                 "schedule": {
-                  "frequency": "R6/2024-05-15/P1M"
+                  "frequency": obj.payload["message"]["order"]["fulfillments"][0]["stops"][0]["time"]["schedule"]["frequency"]
+
                 }
               }
             }
@@ -319,36 +316,42 @@ class SIPCreationView(APIView):
     }
   }
 }
-        # Store transaction and message
-        transaction, _ = Transaction.objects.get_or_create(transaction_id=transaction_id)
-        Message.objects.create(
-            transaction=transaction,
-            message_id=message_id,
-            action="select",
-            timestamp=parse_datetime(timestamp),
-            payload=payload
-        )
+             
+             Message.objects.create(
+                transaction=transaction_id,
+                message_id=message_id,
+                action="select",
+                timestamp=parse_datetime(timestamp),
+                payload=payload
+            )
 
         # Send to gateway
-        request_body_str = json.dumps(payload, separators=(',', ':'))
-        auth_header = create_authorisation_header(request_body=request_body_str)
+             request_body_str = json.dumps(payload, separators=(',', ':'))
+             auth_header = create_authorisation_header(request_body=request_body_str)
 
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": auth_header,
-            "X-Gateway-Authorization": os.getenv("SIGNED_UNIQUE_REQ_ID", ""),
-            "X-Gateway-Subscriber-Id": os.getenv("SUBSCRIBER_ID")
-        }
+             headers = {
+                    "Content-Type": "application/json",
+                    "Authorization": auth_header,
+                    "X-Gateway-Authorization": os.getenv("SIGNED_UNIQUE_REQ_ID", ""),
+                    "X-Gateway-Subscriber-Id": os.getenv("SUBSCRIBER_ID")
+                }
 
-        response = requests.post(f"{bpp_uri}/select", data=request_body_str, headers=headers)
+             response = requests.post(f"{bpp_uri}/search", data=request_body_str, headers=headers)
 
-        try:
-            data=response.json()
-        except json.JSONDecodeError:
-            print("Invalid JSON response:", response.text)
-            return Response({"error": "Invalid JSON received from external service"}, status=502)
-        return Response(response.json(), status=response.status_code)
-        
+             return Response({
+                    "status_code": response.status_code,
+                    "response": response.json() if response.content else {}
+                }, status=status.HTTP_200_OK)
+
+
+                
+
+             
+             
+
+
+
+
 
 
 logger = logging.getLogger(__name__)
