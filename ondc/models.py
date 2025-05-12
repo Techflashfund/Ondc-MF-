@@ -28,7 +28,7 @@ class FullOnSearch(models.Model):
         return f"{self.transaction.transaction_id} - {self.message_id}"
     
 class FullOnSelect(models.Model):
-    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE, related_name='full_on_searchs')
+    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE, related_name='full_on_selects')
     message_id = models.CharField(max_length=100)
     payload = models.JSONField()
     timestamp = models.DateTimeField()
