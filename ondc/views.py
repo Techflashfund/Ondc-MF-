@@ -216,6 +216,8 @@ class SIPCreationView(APIView):
              
              message_id=str(uuid.uuid4())
              timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
+             print(obj.payload)  # Or use logging
+
 
              payload={
   "context": {
