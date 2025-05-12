@@ -307,9 +307,9 @@ class SIPCreationView(APIView):
                 }
             }
         }
-        
+        transaction = Transaction.objects.get(transaction_id="b0a5e831-3643-496d-8dff-97b0bcdcdf30")
         Message.objects.create(
-            transaction=transaction_id,
+            transaction=transaction,
             message_id=message_id,
             action="select",
             timestamp=parse_datetime(timestamp),
