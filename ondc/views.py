@@ -198,154 +198,138 @@ class OnSearchDataView(APIView):
 # SIP Creation
 
 class SIPCreationView(APIView):
-         def post(self,request,*args,**kwargs):
-             transaction_id = request.data.get('transaction_id')
-             bpp_id=request.data.get('bpp_id')
-             bpp_uri=request.data.get('bpp_uri')
+    
+    def post(self, request, *args, **kwargs):
+        transaction_id = request.data.get('transaction_id')
+        bpp_id = request.data.get('bpp_id')
+        bpp_uri = request.data.get('bpp_uri')
 
-             if not all([transaction_id,bpp_id,bpp_uri]):
-                    return Response({"error":"Missing transaction_id ,bppid,bppuri"},status=status.HTTP_400_BAD_REQUEST)
-             
-             
-             obj = get_object_or_404(
-                        FullOnSearch,
-                        payload__context__bpp_id=bpp_id,
-                        payload__context__bpp_uri=bpp_uri,
-                        transaction__transaction_id=transaction_id
-                    )
-             
-             message_id=str(uuid.uuid4())
-             timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
-             print(obj.payload)  # Or use logging
+        if not all([transaction_id, bpp_id, bpp_uri]):
+            return Response({"error": "Missing transaction_id, bpp_id, or bpp_uri"}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        obj = get_object_or_404(
+            FullOnSearch,
+            payload__context__bpp_id=bpp_id,
+            payload__context__bpp_uri=bpp_uri,
+            transaction__transaction_id=transaction_id
+        )
+        
+        message_id = str(uuid.uuid4())
+        timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
 
+        # Get the first provider and item
+        provider = obj.payload["message"]["catalog"]["providers"][0]
+        item = provider["items"][1]  # Using the second item which has fulfillment_ids reference
+        
+        # Get the SIP fulfillment (second fulfillment in the catalog)
+        sip_fulfillment = obj.payload["message"]["catalog"]["fulfillments"][1]  # SIP is at index 1
 
-             payload={
-  "context": {
-    "location": {
-      "country": {
-        "code": "IND"
-      },
-      "city": {
-        "code": "*"
-      }
-    },
-    "domain": "ONDC:FIS14",
-    "timestamp": timestamp,
-    "bap_id": "investment.staging.flashfund.in",
-    "bap_uri": "https://investment.staging.flashfund.in/ondc",
-    "transaction_id":transaction_id,
-    "message_id":message_id,
-    "version": "2.0.0",
-    "ttl": "PT10M",
-    "bpp_id": bpp_id,
-    "bpp_uri": bpp_uri,
-    "action": "select"
-  },
-  "message": {
-    "order": {
-      "provider": {
-        "id": obj.payload["message"]["catalog"]["providers"][0]["id"]
-      },
-      "items": [
-        {
-          "id": obj.payload["message"]["catalog"]["providers"][0]["items"][0]["id"]
-,
-          "quantity": {
-            "selected": {
-              "measure": {
-                "value": "3000",
-                "unit": "INR"
-              }
-            }
-          }
-        }
-      ],
-      "fulfillments": [
-        {
-          "id": obj.payload["message"]["catalog"]["fulfillments"][0]["id"],
-          "type": obj.payload["message"]["catalog"]["fulfillments"][0]["type"],
-          "customer": {
-            "person": {
-              "id":  obj.payload["message"]["catalog"]["fulfillments"][0]["customer"]["person"]["id"]
-            }
-          },
-          "agent": {
-            "person": {
-              "id": obj.payload["message"]["catalog"]["fulfillments"][0]["agent"]["person"]["id"]
+        payload = {
+            "context": {
+                "location": {
+                    "country": {"code": "IND"},
+                    "city": {"code": "*"}
+                },
+                "domain": "ONDC:FIS14",
+                "timestamp": timestamp,
+                "bap_id": "investment.staging.flashfund.in",
+                "bap_uri": "https://investment.staging.flashfund.in/ondc",
+                "transaction_id": transaction_id,
+                "message_id": message_id,
+                "version": "2.0.0",
+                "ttl": "PT10M",
+                "bpp_id": bpp_id,
+                "bpp_uri": bpp_uri,
+                "action": "select"
             },
-            "organization": {
-              "creds":  obj.payload["message"]["catalog"]["fulfillments"][0]["agent"]["organization"]["creds"]
-            }
-          },
-          "stops": [
-            {
-              "time": {
-                "schedule": {
-                  "frequency": obj.payload["message"]["catalog"]["fulfillments"][0]["stops"][0]["time"]["schedule"]["frequency"]
-
+            "message": {
+                "order": {
+                    "provider": {
+                        "id": provider["id"]
+                    },
+                    "items": [
+                        {
+                            "id": item["id"],
+                            "quantity": {
+                                "selected": {
+                                    "measure": {
+                                        "value": "3000",  # SIP amount
+                                        "unit": "INR"
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    "fulfillments": [
+                        {
+                            "id": sip_fulfillment["id"],
+                            "type": sip_fulfillment["type"],
+                            "stops": [
+                                {
+                                    "time": {
+                                        "schedule": {
+                                            "frequency": sip_fulfillment["tags"][0]["list"][0]["value"]  # P1M
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    "tags": [
+                        {
+                            "display": False,
+                            "descriptor": {
+                                "name": "BAP Terms of Engagement",
+                                "code": "BAP_TERMS"
+                            },
+                            "list": [
+                                {
+                                    "descriptor": {
+                                        "name": "Static Terms (Transaction Level)",
+                                        "code": "STATIC_TERMS"
+                                    },
+                                    "value": "https://buyerapp.com/legal/ondc:fis14/static_terms?v=0.1"
+                                },
+                                {
+                                    "descriptor": {
+                                        "name": "Offline Contract",
+                                        "code": "OFFLINE_CONTRACT"
+                                    },
+                                    "value": "true"
+                                }
+                            ]
+                        }
+                    ]
                 }
-              }
             }
-          ]
         }
-      ],
-      "tags": [
-        {
-          "display": False,
-          "descriptor": {
-            "name": "BAP Terms of Engagement",
-            "code": "BAP_TERMS"
-          },
-          "list": [
-            {
-              "descriptor": {
-                "name": "Static Terms (Transaction Level)",
-                "code": "STATIC_TERMS"
-              },
-              "value": "https://buyerapp.com/legal/ondc:fis14/static_terms?v=0.1"
-            },
-            {
-              "descriptor": {
-                "name": "Offline Contract",
-                "code": "OFFLINE_CONTRACT"
-              },
-              "value": "true"
-            }
-          ]
-        }
-      ]
-    }
-  }
-}
-             
-             Message.objects.create(
-                transaction=transaction_id,
-                message_id=message_id,
-                action="select",
-                timestamp=parse_datetime(timestamp),
-                payload=payload
-            )
+        
+        Message.objects.create(
+            transaction=transaction_id,
+            message_id=message_id,
+            action="select",
+            timestamp=parse_datetime(timestamp),
+            payload=payload
+        )
 
         # Send to gateway
-             request_body_str = json.dumps(payload, separators=(',', ':'))
-             auth_header = create_authorisation_header(request_body=request_body_str)
+        request_body_str = json.dumps(payload, separators=(',', ':'))
+        auth_header = create_authorisation_header(request_body=request_body_str)
 
-             headers = {
-                    "Content-Type": "application/json",
-                    "Authorization": auth_header,
-                    "X-Gateway-Authorization": os.getenv("SIGNED_UNIQUE_REQ_ID", ""),
-                    "X-Gateway-Subscriber-Id": os.getenv("SUBSCRIBER_ID")
-                }
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": auth_header,
+            "X-Gateway-Authorization": os.getenv("SIGNED_UNIQUE_REQ_ID", ""),
+            "X-Gateway-Subscriber-Id": os.getenv("SUBSCRIBER_ID")
+        }
 
-             response = requests.post(f"{bpp_uri}/search", data=request_body_str, headers=headers)
+        response = requests.post(f"{bpp_uri}/select", data=request_body_str, headers=headers)
 
-             return Response({
-                    "status_code": response.status_code,
-                    "response": response.json() if response.content else {}
-                }, status=status.HTTP_200_OK)
-
-
-                
+        return Response({
+            "status_code": response.status_code,
+            "response": response.json() if response.content else {}
+        }, status=status.HTTP_200_OK)                
 
              
              
