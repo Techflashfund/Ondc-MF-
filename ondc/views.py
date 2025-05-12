@@ -203,7 +203,7 @@ class SIPCreationView(APIView):
              bpp_id=request.data.get('bpp_id')
              bpp_uri=request.data.get('bpp_uri')
 
-             if not all[transaction_id,bpp_id,bpp_uri]:
+             if not all([transaction_id,bpp_id,bpp_uri]):
                     return Response({"error":"Missing transaction_id ,bppid,bppuri"},status=status.HTTP_400_BAD_REQUEST)
              
              
@@ -213,8 +213,6 @@ class SIPCreationView(APIView):
                         payload__context__bpp_uri=bpp_uri,
                         transaction__transaction_id=transaction_id
                     )
-             if not obj.exists():
-                 return Response({"error":"Missing Transaction"},status=status.HTTP_400_BAD_REQUEST)
              
              message_id=str(uuid.uuid4())
              timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
