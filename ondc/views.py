@@ -9,9 +9,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from datetime import datetime
 import logging
 
-from .models import Transaction, Message, FullOnSearch, FullOnSelect  # your Django models
-from .cryptic_utils import create_authorisation_header  # assuming this is your custom utility
-from .requestbodies import select_message
+from .models import Transaction, Message, FullOnSearch 
+from .cryptic_utils import create_authorisation_header  
 
 class ONDCSearchView(APIView):
     def post(self, request, *args, **kwargs):
@@ -426,12 +425,7 @@ class OnSelectSIPView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            FullOnSelect.objects.create(
-                    transaction=transaction,
-                    message_id=message_id,
-                    payload=data,
-                    timestamp=timestamp
-                )
+           
             # If all validations pass
             logger.info("on_select validation passed, sending ACK")
             return Response(
