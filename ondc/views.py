@@ -224,7 +224,9 @@ class SIPCreationView(APIView):
         item = provider["items"][1]  # Using the second item which has fulfillment_ids reference
         
         # Get the SIP fulfillment (second fulfillment in the catalog)
-        sip_fulfillment = obj.payload["message"]["catalog"]["providers"]["fulfillments"][1]  # SIP is at index 1
+
+        catalog = obj.payload["message"]["catalog"]
+        sip_fulfillment = catalog["providers"][0]["fulfillments"][1]# SIP is at index 1
 
         payload = {
             "context": {
