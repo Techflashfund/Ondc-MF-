@@ -201,9 +201,10 @@ class SIPCreationView(APIView):
         transaction_id = request.data.get('transaction_id')
         bpp_id = request.data.get('bpp_id')
         bpp_uri= request.data.get('bpp_uri')
+        fulfillment_ids= request.data.get('fulfillment_ids')
         
 
-        if not all([transaction_id , bpp_id , bpp_uri]):
+        if not all([transaction_id , bpp_id , bpp_uri,fulfillment_ids]):
             return Response({"error": "transaction_id  required"}, status=status.HTTP_400_BAD_REQUEST)
 
         
@@ -242,7 +243,7 @@ class SIPCreationView(APIView):
       "items": [
         {
           "id": "12391",
-          "fulfillment_ids": ["ff_123"],
+        #   "fulfillment_ids": [fulfillment_ids],
           "quantity": {
             "selected": {
               "measure": {
@@ -255,7 +256,7 @@ class SIPCreationView(APIView):
       ],
       "fulfillments": [
         {
-          "id": "ff_123",
+          "id": fulfillment_ids,
           "type": "SIP",
           "customer": {
             "person": {
