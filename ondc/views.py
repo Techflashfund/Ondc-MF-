@@ -402,7 +402,7 @@ class OnSelectSIPView(APIView):
             
             obj=SubmissionID.objects.filter(transaction=transaction_id,message_id=message_id)
 
-            if not obj:
+            if not obj.exists():
                 # Validate investment amount
                 first_item = items[0]
                 selected_quantity = first_item.get("quantity", {}).get("selected", {})
