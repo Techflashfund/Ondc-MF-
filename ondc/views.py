@@ -512,7 +512,8 @@ class FormSubmisssion(APIView):
                 
                 SubmissionID.objects.create(
                     transaction=obj.transaction,
-                    submission_id=submission_id
+                    submission_id=submission_id,
+                    timestamp=timestamp
                 )
                 payload={
                             "context": {
