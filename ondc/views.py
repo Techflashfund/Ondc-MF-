@@ -645,5 +645,205 @@ class INIT(APIView):
             return Response({"error":"Required all Fields"},status=status.HTTP_400_BAD_REQUEST)
         
         obj=get_object_or_404(SelectSIP,payload__context__bpp_id=bpp_id,payload__context__bpp_uri=bpp_uri,transaction__transaction_id=transaction_id,payload__context__message_id=message_id)
+        message_id_init = str(uuid.uuid4())
+        timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
 
-        
+        try:
+            provider=obj.payload['message']['order']['provider']
+            item=obj.payload['message']['order']['items']
+            fulfillments=obj.payload['message']['order']['fulfillments']
+        except (KeyError, TypeError):
+            return Response(
+                {"error": "Form URL not found in payload"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        payload={
+                "context": {
+                    "location": {
+                    "country": {
+                        "code": "IND"
+                    },
+                    "city": {
+                        "code": "*"
+                    }
+                    },
+                    "domain": "ONDC:FIS14",
+                    "timestamp": timestamp,
+                    "bap_id": "investment.staging.flashfund.in",
+                    "bap_uri": "https://investment.staging.flashfund.in/ondc",
+                    "transaction_id": transaction_id,
+                    "message_id": message_id_init,
+                    "version": "2.0.0",
+                    "ttl": "PT10M",
+                    "bpp_id": bpp_id,
+                    "bpp_uri": bpp_uri,
+                    "action": "init"
+                },
+                "message": {
+                    "order": {
+                    "provider": {
+                        "id": provider['id']
+                    },
+                    "items": [
+                        {
+                        "id": item[0]['id'],
+                        "quantity": {
+                            "selected": {
+                            "measure": {
+                                "value": "3000",
+                                "unit": "INR"
+                            }
+                            }
+                        },
+                        "fulfillment_ids": [
+                            item[0]['fulfillment_ids'][0]
+                        ]
+                        }
+                    ],
+                    "fulfillments": [
+                        {
+                        "id": fulfillments[0]['id'],
+                        "type": fulfillments[0]['type'],
+                        "customer": {
+                            "person": {
+                            "id": "pan:arrpp7771n",
+                            "creds": [
+                                {
+                                "id": "115.245.207.90",
+                                "type": "IP_ADDRESS"
+                                }
+                            ]
+                            },
+                            "contact": {
+                            "phone": "9916599123"
+                            }
+                        },
+                        "agent": {
+                            "person": {
+                            "id": "euin:E52432"
+                            },
+                            "organization": {
+                            "creds": [
+                                {
+                                "id": "ARN-124567",
+                                "type": "ARN"
+                                },
+                                {
+                                "id": "ARN-123456",
+                                "type": "SUB_BROKER_ARN"
+                                }
+                            ]
+                            }
+                        },
+                        "stops": [
+                            {
+                            "time": {
+                                "schedule": {
+                                "frequency": fulfillments[0]["tags"][0]["list"][0]["value"]
+                                }
+                            }
+                            }
+                        ]
+                        }
+                    ],
+                    "payments": [
+                        {
+                        "collected_by": "BPP",
+                        "params": {
+                            "amount": "3000",
+                            "currency": "INR",
+                            "source_bank_code": "icic0000047",
+                            "source_bank_account_number": "004701563111",
+                            "source_bank_account_name": "harish gupta"
+                        },
+                        "type": "PRE_FULFILLMENT",
+                        "tags": [
+                            {
+                            "descriptor": {
+                                "name": "Source bank account",
+                                "code": "SOURCE_BANK_ACCOUNT"
+                            },
+                            "list": [
+                                {
+                                "descriptor": {
+                                    "name": "Account Type",
+                                    "code": "ACCOUNT_TYPE"
+                                },
+                                "value": "SAVINGS"
+                                }
+                            ]
+                            },
+                            {
+                            "descriptor": {
+                                "name": "Payment Method",
+                                "code": "PAYMENT_METHOD"
+                            },
+                            "list": [
+                                {
+                                "descriptor": {
+                                    "code": "MODE"
+                                },
+                                "value": "NACH"
+                                },
+                                {
+                                "descriptor": {
+                                    "code": "AUTH"
+                                },
+                                "value": "NETBANKING"
+                                },
+                                {
+                                "descriptor": {
+                                    "code": "MANDATE_LIMIT"
+                                },
+                                "value": "50000"
+                                }
+                            ]
+                            }
+                        ]
+                        }
+                    ],
+                    "tags": [
+                        {
+                        "display": False,
+                        "descriptor": {
+                            "name": "BAP Terms of Engagement",
+                            "code": "BAP_TERMS"
+                        },
+                        "list": [
+                            {
+                            "descriptor": {
+                                "name": "Static Terms (Transaction Level)",
+                                "code": "STATIC_TERMS"
+                            },
+                            "value": "https://buyerapp.com/legal/ondc:fis14/static_terms?v=0.1"
+                            },
+                            {
+                            "descriptor": {
+                                "name": "Offline Contract",
+                                "code": "OFFLINE_CONTRACT"
+                            },
+                            "value": "true"
+                            }
+                        ]
+                        }
+                    ]
+                    }
+                }
+                }
+         # Send to gateway
+        request_body_str = json.dumps(payload, separators=(',', ':'))
+        auth_header = create_authorisation_header(request_body=request_body_str)
+
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": auth_header,
+            "X-Gateway-Authorization": os.getenv("SIGNED_UNIQUE_REQ_ID", ""),
+            "X-Gateway-Subscriber-Id": os.getenv("SUBSCRIBER_ID")
+        }
+
+        response = requests.post(f"{bpp_uri}/select", data=request_body_str, headers=headers) 
+        return Response({
+                "status_code": response.status_code,
+                "response": response.json() if response.content else {}
+            }, status=status.HTTP_200_OK)                
