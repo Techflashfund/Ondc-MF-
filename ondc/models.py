@@ -39,7 +39,7 @@ class SelectSIP(models.Model):
         
 class SubmissionID(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
-    message_id=models.CharField(max_length=100,null=True, blank=True)
+    message_id=models.CharField(max_length=100,null=True, blank=True,default="123")
     submission_id=models.CharField(max_length=100)
     timestamp = models.DateTimeField()
 
