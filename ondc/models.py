@@ -36,4 +36,13 @@ class SelectSIP(models.Model):
 
         def __str__(self):
              return f"{self.transaction.transaction_id} - {self.message_id}"
+        
+class SubmissionID(models.Model):
+    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
+    submission_id=models.CharField(max_length=100)
+    timestamp = models.DateTimeField()
+
+    def __str__(self):
+        return f"{self.transaction.transaction_id} - {self.submission_id}"
+
 

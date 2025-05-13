@@ -9,7 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from datetime import datetime
 import logging
 
-from .models import Transaction, Message, FullOnSearch,SelectSIP
+from .models import Transaction, Message, FullOnSearch,SelectSIP,SubmissionID
 from .cryptic_utils import create_authorisation_header  
 
 class ONDCSearchView(APIView):
@@ -463,3 +463,55 @@ class OnSelectSIPView(APIView):
 
 # form Submission
 
+class FormSubmisssion(APIView):
+
+    def post(self,request,*args,**kwargs):
+        transaction_id=request.data.get('transaction_id')
+        bpp_id = request.data.get('bpp_id')
+        bpp_uri = request.data.get('bpp_uri')
+
+        if not all([transaction_id, bpp_id, bpp_uri]):
+            return Response({"error": "Missing transaction_id, bpp_id, or bpp_uri"}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        obj=get_object_or_404(SelectSIP,payload__context__bpp_id=bpp_id,payload__context__bpp_uri=bpp_uri,transaction__transaction_id=transaction_id)
+        
+        try:
+            url = obj.payload["message"]["order"]["xinput"]["form"]["url"]
+        except (KeyError, TypeError):
+            return Response(
+                {"error": "Form URL not found in payload"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user_kyc_data = {
+            "pan": "ABCDE1234F",
+            "dob": "1990-01-01",
+            "email": "user@example.com",
+            "name": "Ravi Kumar",
+            "gender":"Male",
+            "marital_status":"Married",
+            "occupation":"Salaried",
+            "source_of_wealth":"Business",
+            "income_range":"1L to 5L",
+            "cob":"India",
+            "pob":"Kochi"
+        }
+        try:
+            res = requests.post(url, data=user_kyc_data)
+            if res.status_code == 200:
+                resp_json = res.json()
+                submission_id=resp_json['submission_id'],
+                SubmissionID.objects.create(
+                    trnsaction=transaction_id,
+                    submission_id=submission_id
+                )
+        except Exception as e:
+             return Response(
+                {"error": "Unable to upload the Form"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+
+
+        
