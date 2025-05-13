@@ -712,12 +712,14 @@ class INIT(APIView):
                                 {
                                 "id": "115.245.207.90",
                                 "type": "IP_ADDRESS"
-                                }
-                            ]
+                                },
+                                {
+                "id": "9916599123",
+                "type": "PHONE"
+            }
+                                    ]
                             },
-                            "contact": {
-                            "phone": "9916599123"
-                            }
+                            
                         },
                         "agent": {
                             "person": {
