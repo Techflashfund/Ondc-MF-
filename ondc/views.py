@@ -464,7 +464,6 @@ class OnSelectSIPView(APIView):
 # form Submission
 
 class FormSubmisssion(APIView):
-
     def post(self,request,*args,**kwargs):
         transaction_id=request.data.get('transaction_id')
         bpp_id = request.data.get('bpp_id')
@@ -512,7 +511,7 @@ class FormSubmisssion(APIView):
                     return Response({"error":"submission id missing"},status=status.HTTP_400_BAD_REQUEST)
                 
                 SubmissionID.objects.create(
-                    trnsaction=transaction_id,
+                    transaction=transaction_id,
                     submission_id=submission_id
                 )
                 payload={
