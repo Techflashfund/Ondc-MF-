@@ -9,7 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from datetime import datetime
 import logging
 
-from .models import Transaction, Message, FullOnSearch,SelectSIP,SubmissionID
+from .models import Transaction, Message, FullOnSearch,SelectSIP,SubmissionID,SIPFulfillment
 from .cryptic_utils import create_authorisation_header  
 
 class ONDCSearchView(APIView):
@@ -664,3 +664,116 @@ class FormSubmisssion(APIView):
             )   
                                 
                                 
+
+
+logger = logging.getLogger(__name__)
+
+class FormSubmitOnSelect(APIView):
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        logger.info("Received on_select payload: %s", data)
+        print("Received on_select payload:", json.dumps(data, indent=2))
+
+        # Step 1: Validate context
+        context = data.get("context", {})
+        message_id = context.get("message_id")
+        transaction_id = context.get("transaction_id")
+        timestamp_str = context.get("timestamp")
+        action = context.get("action")
+
+        if not all([message_id, transaction_id, timestamp_str, action]):
+            return Response(
+                {"error": "Missing required fields in context"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if action != "on_select":
+            return Response(
+                {"error": "Invalid action. Expected 'on_select'"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Step 2: Validate timestamp
+        timestamp = parse_datetime(timestamp_str)
+        if not timestamp:
+            return Response(
+                {"error": "Invalid timestamp format"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Step 3: Check transaction exists
+        try:
+            transaction = Transaction.objects.get(transaction_id=transaction_id)
+        except Transaction.DoesNotExist:
+            logger.warning("Transaction not found: %s", transaction_id)
+            return Response(
+                {"error": "Transaction not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Step 4: Extract order info
+        order = data.get("message", {}).get("order", {})
+        if not order:
+            return Response({"error": "Missing order data"}, status=400)
+
+        item = order.get("items", [])[0]  # Assuming one item
+        item_id = item.get("id")
+        scheme_name = item.get("descriptor", {}).get("name")
+        investment_amount = item.get("quantity", {}).get("selected", {}).get("measure", {}).get("value")
+
+        fulfillment = order.get("fulfillments", [])[0]  # Assuming one fulfillment
+        fulfillment_id = fulfillment.get("id")
+        customer_id = fulfillment.get("customer", {}).get("person", {}).get("id")
+        agent_id = fulfillment.get("agent", {}).get("person", {}).get("id")
+        schedule = fulfillment.get("stops", [{}])[0].get("time", {}).get("schedule", {})
+        frequency = schedule.get("frequency")
+
+        # Extract tags for thresholds
+        threshold_tag = next((tag for tag in fulfillment.get("tags", []) if tag.get("descriptor", {}).get("code") == "THRESHOLDS"), None)
+        if threshold_tag:
+            thresholds = {entry["descriptor"]["code"]: entry["value"] for entry in threshold_tag.get("list", [])}
+        else:
+            thresholds = {}
+
+        min_amount = int(thresholds.get("AMOUNT_MIN", 0))
+        max_amount = int(thresholds.get("AMOUNT_MAX", 99999999))
+        min_inst = int(thresholds.get("INSTALMENTS_COUNT_MIN", 0))
+        max_inst = int(thresholds.get("INSTALMENTS_COUNT_MAX", 999999))
+        cum_min = int(thresholds.get("CUMULATIVE_AMOUNT_MIN", 0))
+
+        # Validate amount
+        try:
+            amount_int = int(investment_amount)
+        except ValueError:
+            return Response({"error": "Invalid investment amount"}, status=400)
+
+        if amount_int < min_amount or amount_int > max_amount:
+            return Response({
+                "error": f"Investment amount {amount_int} not within allowed range ({min_amount}-{max_amount})"
+            }, status=400)
+
+        # Step 5: Extract form submission
+        form_response = order.get("xinput", {}).get("form_response", {})
+        submission_id = form_response.get("submission_id")
+
+        # Step 6: Save SIP fulfillment (simplified)
+        sip_obj = SIPFulfillment.objects.create(
+            transaction=transaction,
+            fulfillment_id=fulfillment_id,
+            scheme_name=scheme_name,
+            customer_id=customer_id,
+            agent_id=agent_id,
+            investment_amount=amount_int,
+            frequency=frequency,
+            schedule_str=json.dumps(schedule),
+            thresholds=thresholds,
+            submission_id=submission_id,
+            raw_payload=data
+        )
+
+        logger.info(f"SIP Fulfillment created for transaction {transaction_id}, fulfillment {fulfillment_id}")
+
+        return Response({
+            "message": "on_select processed successfully",
+            "sip_fulfillment_id": sip_obj.id
+        }, status=200)

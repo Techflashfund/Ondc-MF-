@@ -44,5 +44,20 @@ class SubmissionID(models.Model):
 
     def __str__(self):
         return f"{self.transaction.transaction_id} - {self.submission_id}"
+    
+
+class SIPFulfillment(models.Model):
+    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
+    fulfillment_id = models.CharField(max_length=100)
+    scheme_name = models.CharField(max_length=255)
+    customer_id = models.CharField(max_length=50)
+    agent_id = models.CharField(max_length=50, null=True, blank=True)
+    investment_amount = models.PositiveIntegerField()
+    frequency = models.CharField(max_length=50)
+    schedule_str = models.TextField()
+    thresholds = models.JSONField()
+    submission_id = models.CharField(max_length=100, null=True, blank=True)
+    raw_payload = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
