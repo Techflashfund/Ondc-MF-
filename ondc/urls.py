@@ -8,5 +8,6 @@ urlpatterns = [
     path('select/',SIPCreationView.as_view(),name='select'),
     path('on_select',OnSelectSIPView.as_view(),name='on_select'),
     path('formsub',FormSubmisssion.as_view(),name='formsub'),
+    path()
 ]
 
