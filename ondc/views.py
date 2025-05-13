@@ -511,7 +511,7 @@ class FormSubmisssion(APIView):
                     return Response({"error":"submission id missing"},status=status.HTTP_400_BAD_REQUEST)
                 
                 SubmissionID.objects.create(
-                    transaction=transaction_id,
+                    transaction=obj.transaction,
                     submission_id=submission_id
                 )
                 payload={
