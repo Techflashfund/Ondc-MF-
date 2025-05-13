@@ -500,15 +500,24 @@ class FormSubmisssion(APIView):
             res = requests.post(url, data=user_kyc_data)
             if res.status_code == 200:
                 resp_json = res.json()
-                submission_id=resp_json['submission_id'],
+                submission_id=resp_json['submission_id']
                 SubmissionID.objects.create(
                     trnsaction=transaction_id,
                     submission_id=submission_id
                 )
-        except Exception as e:
-             return Response(
-                {"error": "Unable to upload the Form"},
+                return Response(
+                {"message": "Form uploaded successfully"},
+                status=status.HTTP_200_OK
+            )
+        except requests.exceptions.RequestException as e:
+            return Response(
+                {"error": f"Form upload failed: {str(e)}"},
                 status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            return Response(
+                {"error": f"Unexpected error: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
 
