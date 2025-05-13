@@ -447,6 +447,22 @@ class OnSelectSIPView(APIView):
                 },
                 status=status.HTTP_200_OK
             )
+           
+                
+
+        except Exception as e:
+            logger.error("Failed to process on_select: %s", str(e), exc_info=True)
+            return Response(
+                {
+                    "message": {
+                        "ack": {
+                            "status": "NACK",
+                            "description": "Internal server error"
+                        }
+                    }
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 
