@@ -388,45 +388,6 @@ class OnSelectSIPView(APIView):
                     status=status.HTTP_404_NOT_FOUND
                 )
 
-            # Validate message.order
-            message = data.get("message", {})
-            order = message.get("order", {})
-
-            items = order.get("items", [])
-            if not items:
-                return Response(
-                    {"error": "No items in order"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            
-           
-                # Validate investment amount
-            first_item = items[0]
-            selected_quantity = first_item.get("quantity", {}).get("selected", {})
-            amount = selected_quantity.get("measure", {}).get("value")
-            if not amount or float(amount) <= 0:
-                return Response(
-                    {"error": "Invalid investment amount"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            # Validate fulfillments
-            fulfillments = order.get("fulfillments", [])
-            if not fulfillments:
-                return Response(
-                    {"error": "No fulfillments provided"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            # Validate xinput.form.url
-            xinput = order.get("xinput", {})
-            form_url = xinput.get("form", {}).get("url")
-            if not form_url:
-                return Response(
-                    {"error": "Missing account opening form URL in xinput.form.url"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
 
             SelectSIP.objects.create(
                 transaction=transaction,
@@ -672,3 +633,17 @@ class FormSubmisssion(APIView):
                        
 
 
+class INIT(APIView):
+    
+    def post(self,request,*args,**kwargs):
+        transaction_id=request.data.get('transaction_id')
+        bpp_id = request.data.get('bpp_id')
+        bpp_uri = request.data.get('bpp_uri')
+        message_id=request.data.get('message_id')
+
+        if not all([transaction_id,bpp_id,bpp_uri,message_id]):
+            return Response({"error":"Required all Fields"},status=status.HTTP_400_BAD_REQUEST)
+        
+        obj=get_object_or_404(SelectSIP,payload__context__bpp_id=bpp_id,payload__context__bpp_uri=bpp_uri,transaction__transaction_id=transaction_id,payload__context__message_id=message_id)
+
+        
