@@ -509,6 +509,11 @@ class FormSubmisssion(APIView):
                 {"message": "Form uploaded successfully"},
                 status=status.HTTP_200_OK
             )
+            else:
+                return Response(
+                    {"error": f"Form upload failed with status {res.status_code}"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
         except requests.exceptions.RequestException as e:
             return Response(
                 {"error": f"Form upload failed: {str(e)}"},
