@@ -9,7 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from datetime import datetime
 import logging
 
-from .models import Transaction, Message, FullOnSearch,SelectSIP,SubmissionID,SIPFulfillment
+from .models import Transaction, Message, FullOnSearch,SelectSIP,SubmissionID,OnInitSIP
 from .cryptic_utils import create_authorisation_header  
 
 class ONDCSearchView(APIView):
@@ -856,3 +856,62 @@ class INIT(APIView):
                 "status_code": response.status_code,
                 "response": response.json() if response.content else {}
             }, status=status.HTTP_200_OK)                
+
+
+class ONINIT(APIView):
+    def post(self,request,*args,**kwargs):
+        try:
+            data = request.data
+            logger.info("Received on_select payload: %s", data)
+            print("Received on_select payload:", json.dumps(data, indent=2))
+
+            context = data.get("context", {})
+            message_id = context.get("message_id")
+            transaction_id = context.get("transaction_id")
+            timestamp_str = context.get("timestamp")
+            action = context.get("action")
+
+             # Validate context fields
+            if not all([message_id, transaction_id, timestamp_str, action]):
+                return Response(
+                    {"error": "Missing required fields in context"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            if action != "on_init":
+                return Response(
+                    {"error": "Invalid action. Expected 'on_select'"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Validate timestamp
+            timestamp = parse_datetime(timestamp_str)
+            if not timestamp:
+                return Response(
+                    {"error": "Invalid timestamp format"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Validate transaction
+            try:
+                transaction = Transaction.objects.get(transaction_id=transaction_id)
+            except Transaction.DoesNotExist:
+                logger.warning("Transaction not found: %s", transaction_id)
+                return Response(
+                    {"error": "Transaction not found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+             # Save to database
+            OnInitSIP.objects.create(
+                transaction=transaction,
+                message_id=message_id,
+                payload=data,
+                timestamp=timestamp
+            )
+
+        except Exception as e:
+            logger.error("Failed to process on_search data: %s", str(e))
+            return Response({"error": "Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({"message": "on_search received"}, status=status.HTTP_200_OK)
