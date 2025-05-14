@@ -658,9 +658,9 @@ class INIT(APIView):
             item=obj.payload['message']['order']['items']
             fulfillments=obj.payload['message']['order']['fulfillments']
             payments=obj.payload['message']['order']['payments']
-        except (KeyError, TypeError):
+        except (KeyError, TypeError) as e:
             return Response(
-                {"error": "Form URL not found in payload"},
+                {"error": f"Missing key in payload: {e}"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
