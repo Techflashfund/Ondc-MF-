@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ONDCSearchView,OnSearchView,OnSearchDataView,SIPCreationView,OnSelectSIPView,FormSubmisssion,INIT,ONINIT
+from .views import ONDCSearchView,OnSearchView,OnSearchDataView,SIPCreationView,OnSelectSIPView,FormSubmisssion,INIT,ONINIT,ConfirmSIP
 
 urlpatterns = [
     path("search/", ONDCSearchView.as_view()),
@@ -10,6 +10,7 @@ urlpatterns = [
     path('formsub',FormSubmisssion.as_view(),name='formsub'),
     path('init/',INIT.as_view(),name='init'),
     path('on_init',ONINIT.as_view(),name='on_init'),
+    path('confirm',ConfirmSIP.as_view(),name='confirm'),
 
 ]
 
