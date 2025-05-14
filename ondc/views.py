@@ -1055,7 +1055,7 @@ class ConfirmSIP(APIView):
                                     {
                                     "descriptor": {
                                         "name": payments[0]['tags'][0]['descriptor']['name'],
-                                        "code":payments[0]['tags'][0]['list'][0]['descriptor']['code']
+                                        "code":payments[0]['tags'][0]['descriptor']['code']
                                     },
                                     "list": [
                                         {
@@ -1069,13 +1069,13 @@ class ConfirmSIP(APIView):
                                     },
                                     {
                                     "descriptor": {
-                                        "name": "Payment Method",
-                                        "code": "PAYMENT_METHOD"
+                                         "name": payments[0]['tags'][0]['descriptor']['name'],
+                                        "code":payments[0]['tags'][0]['descriptor']['code']
                                     },
                                     "list": [
                                         {
                                         "descriptor": {
-                                            "code": "MODE"
+                                            "code": payments[0]['tags'][0]['list'][0]['descriptor']['code']
                                         },
                                         "value": payments[0]['tags'][0]['list'][0]['value']
                                         },
