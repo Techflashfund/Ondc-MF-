@@ -47,7 +47,7 @@ class SubmissionID(models.Model):
         return f"{self.transaction.transaction_id} - {self.submission_id}"
     
 
-class OnInitSIP(models.model):
+class OnInitSIP(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE, related_name='full_on_init')
     message_id = models.CharField(max_length=100)
     payload = models.JSONField()
