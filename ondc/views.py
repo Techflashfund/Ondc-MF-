@@ -685,6 +685,7 @@ class INIT(APIView):
                     "bpp_id": bpp_id,
                     "bpp_uri": bpp_uri,
                     "action": "init"
+                    
                 },
                 "message": {
                     "order": {
