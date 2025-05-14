@@ -1224,3 +1224,105 @@ class OnConfirmSIP(APIView):
 
         return Response({"message": "on_search received"}, status=status.HTTP_200_OK)
     
+class OnStatus(APIView):
+
+    def post(self,request,*args,**kwargs):
+
+        try:
+            data = request.data
+            logger.info("Received on_status payload: %s", data)
+            print("Received  on_status  payload:", json.dumps(data, indent=2))
+
+            context = data.get("context", {})
+            message_id = context.get("message_id")
+            transaction_id = context.get("transaction_id")
+            timestamp_str = context.get("timestamp")
+            action = context.get("action")
+
+            if not all([message_id, transaction_id, timestamp_str, action]):
+                return Response(
+                    {"error": "Missing required fields in context"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            if action != "on_confirm":
+                return Response(
+                    {"error": "Invalid action. Expected 'on_confirm'"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+             # Validate timestamp
+            timestamp = parse_datetime(timestamp_str)
+            if not timestamp:
+                return Response(
+                    {"error": "Invalid timestamp format"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Validate transaction
+            try:
+                transaction = Transaction.objects.get(transaction_id=transaction_id)
+            except Transaction.DoesNotExist:
+                logger.warning("Transaction not found: %s", transaction_id)
+                return Response(
+                    {"error": "Transaction not found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        except Exception as e:
+            logger.error("Failed to process on_status data: %s", str(e))
+            return Response({"error": "Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({"message": "on_status received"}, status=status.HTTP_200_OK)    
+
+
+class OnUpdate(APIView):
+
+    def post(self,request,*args,**kwargs):
+
+        try:
+            data = request.data
+            logger.info("Received on_update payload: %s", data)
+            print("Received  on_update  payload:", json.dumps(data, indent=2))
+
+            context = data.get("context", {})
+            message_id = context.get("message_id")
+            transaction_id = context.get("transaction_id")
+            timestamp_str = context.get("timestamp")
+            action = context.get("action")
+
+            if not all([message_id, transaction_id, timestamp_str, action]):
+                return Response(
+                    {"error": "Missing required fields in context"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            if action != "on_update":
+                return Response(
+                    {"error": "Invalid action. Expected 'on_update'"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+             # Validate timestamp
+            timestamp = parse_datetime(timestamp_str)
+            if not timestamp:
+                return Response(
+                    {"error": "Invalid timestamp format"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Validate transaction
+            try:
+                transaction = Transaction.objects.get(transaction_id=transaction_id)
+            except Transaction.DoesNotExist:
+                logger.warning("Transaction not found: %s", transaction_id)
+                return Response(
+                    {"error": "Transaction not found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        except Exception as e:
+            logger.error("Failed to process on_updatedata: %s", str(e))
+            return Response({"error": "Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({"message": "on_update received"}, status=status.HTTP_200_OK)    
+
+        
