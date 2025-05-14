@@ -466,7 +466,12 @@ class FormSubmisssion(APIView):
             "source_of_wealth":"Business",
             "income_range":"1L to 5L",
             "cob":"India",
-            "pob":"Kochi"
+            "pob":"Kochi",
+            "political_exposure":"no_exposure",
+            "india_tax_residency_status":"resident",
+            "mode_of_holding":"single",
+            "ca_line":"hfjfk jifl jffj",
+
         }
         try:
             res = requests.post(url, json=user_kyc_data)
@@ -652,6 +657,7 @@ class INIT(APIView):
             provider=obj.payload['message']['order']['provider']
             item=obj.payload['message']['order']['items']
             fulfillments=obj.payload['message']['order']['fulfillments']
+            payments=obj.payload['message']['order']['payments']
         except (KeyError, TypeError):
             return Response(
                 {"error": "Form URL not found in payload"},
@@ -749,62 +755,62 @@ class INIT(APIView):
                         ]
                         }
                     ],
-                    "payments": [
-                        {
-                        "collected_by": "BPP",
-                        "params": {
-                            "amount": "3000",
-                            "currency": "INR",
-                            "source_bank_code": "icic0000047",
-                            "source_bank_account_number": "004701563111",
-                            "source_bank_account_name": "harish gupta"
-                        },
-                        "type": "PRE_FULFILLMENT",
-                        "tags": [
-                            {
-                            "descriptor": {
-                                "name": "Source bank account",
-                                "code": "SOURCE_BANK_ACCOUNT"
-                            },
-                            "list": [
-                                {
-                                "descriptor": {
-                                    "name": "Account Type",
-                                    "code": "ACCOUNT_TYPE"
-                                },
-                                "value": "SAVINGS"
-                                }
-                            ]
-                            },
-                            {
-                            "descriptor": {
-                                "name": "Payment Method",
-                                "code": "PAYMENT_METHOD"
-                            },
-                            "list": [
-                                {
-                                "descriptor": {
-                                    "code": "MODE"
-                                },
-                                "value": "NACH"
-                                },
-                                {
-                                "descriptor": {
-                                    "code": "AUTH"
-                                },
-                                "value": "NETBANKING"
-                                },
-                                {
-                                "descriptor": {
-                                    "code": "MANDATE_LIMIT"
-                                },
-                                "value": "50000"
-                                }
-                            ]
-                            }
-                        ]
-                        }
-                    ],
+                    # "payments": [
+                    #     {
+                    #     "collected_by": payments[0]['collected_by'],
+                    #     "params": {
+                    #         "amount": "3000",
+                    #         "currency": "INR",
+                    #         "source_bank_code": "icic0000047",
+                    #         "source_bank_account_number": "004701563111",
+                    #         "source_bank_account_name": "harish gupta"
+                    #     },
+                    #     "type": payments[0]['type'],
+                    #     "tags": [
+                    #         {
+                    #         "descriptor": {
+                    #             "name": "Source bank account",
+                    #             "code": "SOURCE_BANK_ACCOUNT"
+                    #         },
+                    #         "list": [
+                    #             {
+                    #             "descriptor": {
+                    #                 "name": "Account Type",
+                    #                 "code": "ACCOUNT_TYPE"
+                    #             },
+                    #             "value": "SAVINGS"
+                    #             }
+                    #         ]
+                    #         },
+                    #         {
+                    #         "descriptor": {
+                    #             "name": "Payment Method",
+                    #             "code": "PAYMENT_METHOD"
+                    #         },
+                    #         "list": [
+                    #             {
+                    #             "descriptor": {
+                    #                 "code": "MODE"
+                    #             },
+                    #             "value": "NACH"
+                    #             },
+                    #             {
+                    #             "descriptor": {
+                    #                 "code": "AUTH"
+                    #             },
+                    #             "value": "NETBANKING"
+                    #             },
+                    #             {
+                    #             "descriptor": {
+                    #                 "code": "MANDATE_LIMIT"
+                    #             },
+                    #             "value": "50000"
+                    #             }
+                    #         ]
+                    #         }
+                    #     ]
+                    #     }
+                    # ],
                     "tags": [
                         {
                         "display": False,
