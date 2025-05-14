@@ -959,7 +959,7 @@ class ConfirmSIP(APIView):
                             "bap_id": "investment.staging.flashfund.in",
                             "bap_uri": "https://investment.staging.flashfund.in/ondc",
                             "transaction_id": transaction_id,
-                            "message_id": message_id,
+                            "message_id": message_id_conform,
                             "version": "2.0.0",
                             "ttl": "PT10M",
                             "bpp_id": bpp_id,
