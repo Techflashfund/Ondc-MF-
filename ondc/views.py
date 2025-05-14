@@ -1054,14 +1054,14 @@ class ConfirmSIP(APIView):
                                 "tags": [
                                     {
                                     "descriptor": {
-                                        "name": "Source bank account",
-                                        "code": "SOURCE_BANK_ACCOUNT"
+                                        "name": payments[0]['tags'][0]['descriptor']['name'],
+                                        "code":payments[0]['tags'][0]['list'][0]['descriptor']['code']
                                     },
                                     "list": [
                                         {
                                         "descriptor": {
                                             "name": "Account Type",
-                                            "code": "ACCOUNT_TYPE"
+                                            "code": payments[0]['tags'][0]['list'][0]['descriptor']['code']
                                         },
                                         "value": "SAVINGS"
                                         }
@@ -1077,7 +1077,7 @@ class ConfirmSIP(APIView):
                                         "descriptor": {
                                             "code": "MODE"
                                         },
-                                        "value": "NACH"
+                                        "value": payments[0]['tags'][0]['list'][0]['value']
                                         },
                                         {
                                         "descriptor": {
