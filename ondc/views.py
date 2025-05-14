@@ -928,7 +928,7 @@ class ConfirmSIP(APIView):
         if not all([transaction_id,bpp_id,bpp_uri,message_id]):
             return Response({"error":"Required all Fields"},status=status.HTTP_400_BAD_REQUEST)
         
-        obj=get_object_or_404(SelectSIP,payload__context__bpp_id=bpp_id,payload__context__bpp_uri=bpp_uri,transaction__transaction_id=transaction_id,payload__context__message_id=message_id)
+        obj=get_object_or_404(OnInitSIP,payload__context__bpp_id=bpp_id,payload__context__bpp_uri=bpp_uri,transaction__transaction_id=transaction_id,payload__context__message_id=message_id)
         message_id_conform = str(uuid.uuid4())
         timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
 
