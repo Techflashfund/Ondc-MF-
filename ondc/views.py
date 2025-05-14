@@ -657,7 +657,7 @@ class INIT(APIView):
             provider=obj.payload['message']['order']['provider']
             item=obj.payload['message']['order']['items']
             fulfillments=obj.payload['message']['order']['fulfillments']
-            # payments=obj.payload['message']['order']['payments']
+            payments=obj.payload['message']['order']['payments']
         except (KeyError, TypeError) as e:
             return Response(
                 {"error": f"Missing key in payload: {e}"},
@@ -755,62 +755,62 @@ class INIT(APIView):
                         ]
                         }
                     ],
-                    # "payments": [
-                    #     {
-                    #     "collected_by": payments[0]['collected_by'],
-                    #     "params": {
-                    #         "amount": "3000",
-                    #         "currency": "INR",
-                    #         "source_bank_code": "icic0000047",
-                    #         "source_bank_account_number": "004701563111",
-                    #         "source_bank_account_name": "harish gupta"
-                    #     },
-                    #     "type": payments[0]['type'],
-                    #     "tags": [
-                    #         {
-                    #         "descriptor": {
-                    #             "name": "Source bank account",
-                    #             "code": "SOURCE_BANK_ACCOUNT"
-                    #         },
-                    #         "list": [
-                    #             {
-                    #             "descriptor": {
-                    #                 "name": "Account Type",
-                    #                 "code": "ACCOUNT_TYPE"
-                    #             },
-                    #             "value": "SAVINGS"
-                    #             }
-                    #         ]
-                    #         },
-                    #         {
-                    #         "descriptor": {
-                    #             "name": "Payment Method",
-                    #             "code": "PAYMENT_METHOD"
-                    #         },
-                    #         "list": [
-                    #             {
-                    #             "descriptor": {
-                    #                 "code": "MODE"
-                    #             },
-                    #             "value": "NACH"
-                    #             },
-                    #             {
-                    #             "descriptor": {
-                    #                 "code": "AUTH"
-                    #             },
-                    #             "value": "NETBANKING"
-                    #             },
-                    #             {
-                    #             "descriptor": {
-                    #                 "code": "MANDATE_LIMIT"
-                    #             },
-                    #             "value": "50000"
-                    #             }
-                    #         ]
-                    #         }
-                    #     ]
-                    #     }
-                    # ],
+                    "payments": [
+                        {
+                        "collected_by": payments[0]['collected_by'],
+                        "params": {
+                            "amount": "3000",
+                            "currency": "INR",
+                            "source_bank_code": "icic0000047",
+                            "source_bank_account_number": "004701563111",
+                            "source_bank_account_name": "harish gupta"
+                        },
+                        "type": payments[0]['type'],
+                        "tags": [
+                            {
+                            "descriptor": {
+                                "name": "Source bank account",
+                                "code": "SOURCE_BANK_ACCOUNT"
+                            },
+                            "list": [
+                                {
+                                "descriptor": {
+                                    "name": "Account Type",
+                                    "code": "ACCOUNT_TYPE"
+                                },
+                                "value": "SAVINGS"
+                                }
+                            ]
+                            },
+                            {
+                            "descriptor": {
+                                "name": "Payment Method",
+                                "code": "PAYMENT_METHOD"
+                            },
+                            "list": [
+                                {
+                                "descriptor": {
+                                    "code": "MODE"
+                                },
+                                "value": "NACH"
+                                },
+                                {
+                                "descriptor": {
+                                    "code": "AUTH"
+                                },
+                                "value": "NETBANKING"
+                                },
+                                {
+                                "descriptor": {
+                                    "code": "MANDATE_LIMIT"
+                                },
+                                "value": "50000"
+                                }
+                            ]
+                            }
+                        ]
+                        }
+                    ],
                     "tags": [
                         {
                         "display": False,
