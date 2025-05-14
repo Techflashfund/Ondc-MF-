@@ -1060,7 +1060,7 @@ class ConfirmSIP(APIView):
                                     "list": [
                                         {
                                         "descriptor": {
-                                            "name": "Account Type",
+                                            # "name": "Account Type",
                                             "code": payments[0]['tags'][0]['list'][0]['descriptor']['code']
                                         },
                                         "value": "SAVINGS"
