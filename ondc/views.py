@@ -202,6 +202,7 @@ class SIPCreationView(APIView):
         transaction_id = request.data.get('transaction_id')
         bpp_id = request.data.get('bpp_id')
         bpp_uri = request.data.get('bpp_uri')
+        pan=request.data.get('pan')
 
         if not all([transaction_id, bpp_id, bpp_uri]):
             return Response({"error": "Missing transaction_id, bpp_id, or bpp_uri"}, 
@@ -219,93 +220,115 @@ class SIPCreationView(APIView):
         print(obj.payload)
 
         # Get the first provider and item
-        provider = obj.payload["message"]["catalog"]["providers"][0]
-        item = provider["items"][1]  # Using the second item which has fulfillment_ids reference
-        
-        # Get the SIP fulfillment (second fulfillment in the catalog)
-
+        provider = obj.payload["message"]["catalog"]["providers"]
         catalog = obj.payload["message"]["catalog"]
         sip_fulfillment = catalog["providers"][0]["fulfillments"][1]# SIP is at index 1
 
         payload = {
-            "context": {
-                "location": {
-                    "country": {"code": "IND"},
-                    "city": {"code": "*"}
-                },
-                "domain": "ONDC:FIS14",
-                "timestamp": timestamp,
-                "bap_id": "investment.staging.flashfund.in",
-                "bap_uri": "https://investment.staging.flashfund.in/ondc",
-                "transaction_id": transaction_id,
-                "message_id": message_id,
-                "version": "2.0.0",
-                "ttl": "PT10M",
-                "bpp_id": bpp_id,
-                "bpp_uri": bpp_uri,
-                "action": "select"
-            },
-            "message": {
-                "order": {
-                    "provider": {
-                        "id": provider["id"]
-                    },
-                    "items": [
-                        {
-                            "id": item["id"],
-                            "quantity": {
-                                "selected": {
-                                    "measure": {
-                                        "value": "3000",  # SIP amount
-                                        "unit": "INR"
-                                    }
-                                }
-                            }
-                        }
-                    ],
-                    "fulfillments": [
-                        {
-                            "id": sip_fulfillment["id"],
-                            "type": sip_fulfillment["type"],
-                            "stops": [
-                                {
-                                    "time": {
-                                        "schedule": {
-                                            "frequency": sip_fulfillment["tags"][0]["list"][0]["value"]  # P1M
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    ],
-                    "tags": [
-                        {
-                            "display": False,
-                            "descriptor": {
-                                "name": "BAP Terms of Engagement",
-                                "code": "BAP_TERMS"
-                            },
-                            "list": [
-                                {
-                                    "descriptor": {
-                                        "name": "Static Terms (Transaction Level)",
-                                        "code": "STATIC_TERMS"
-                                    },
-                                    "value": "https://buyerapp.com/legal/ondc:fis14/static_terms?v=0.1"
-                                },
-                                {
-                                    "descriptor": {
-                                        "name": "Offline Contract",
-                                        "code": "OFFLINE_CONTRACT"
-                                    },
-                                    "value": "true"
-                                }
-                            ]
-                        }
-                    ]
-                }
+  "context": {
+    "location": {
+      "country": {
+        "code": "IND"
+      },
+      "city": {
+        "code": "*"
+      }
+    },
+    "domain": "ONDC:FIS14",
+   "timestamp": timestamp,
+    "bap_id": "investment.staging.flashfund.in",
+    "bap_uri": "https://investment.staging.flashfund.in/ondc",
+    "transaction_id": transaction_id,
+    "message_id": message_id,
+    "version": "2.0.0",
+    "ttl": "PT10M",
+    "bpp_id": bpp_id,
+    "bpp_uri": bpp_uri,
+    "action": "select"
+  },
+  "message": {
+    "order": {
+      "provider": {
+        "id": provider[0]['id']
+      },
+      "items": [
+        {
+          "id": provider[0]['items'][0]['id'],
+          "quantity": {
+            "selected": {
+              "measure": {
+                "value": "3000",
+                "unit": "INR"
+              }
             }
+          }
         }
+      ],
+      "fulfillments": [
+        {
+          "id": provider[0]['fulfillments'][0]['id'],
+          "type": provider[0]['fulfillments'][0]['type'],
+          "customer": {
+            "person": {
+              "id": "pan:arrpp7771n"
+            }
+          },
+          "agent": {
+            "person": {
+              "id": "euin:E52432"
+            },
+            "organization": {
+              "creds": [
+                {
+                  "id": "ARN-124567",
+                  "type": "ARN"
+                },
+                {
+                  "id": "ARN-123456",
+                  "type": "SUB_BROKER_ARN"
+                }
+              ]
+            }
+          },
+          "stops": [
+            {
+              "time": {
+                "schedule": {
+                  "frequency": provider[0]['fulfillments'][0]["tags"][0]["list"][0]["value"]
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "display": False,
+          "descriptor": {
+            "name": "BAP Terms of Engagement",
+            "code": "BAP_TERMS"
+          },
+          "list": [
+            {
+              "descriptor": {
+                "name": "Static Terms (Transaction Level)",
+                "code": "STATIC_TERMS"
+              },
+              "value": "https://buyerapp.com/legal/ondc:fis14/static_terms?v=0.1"
+            },
+            {
+              "descriptor": {
+                "name": "Offline Contract",
+                "code": "OFFLINE_CONTRACT"
+              },
+              "value": "true"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
         transaction = Transaction.objects.get(transaction_id="b0a5e831-3643-496d-8dff-97b0bcdcdf30")
         Message.objects.create(
             transaction=transaction,
@@ -1298,4 +1321,5 @@ class OnUpdate(APIView):
 
         return Response({"message": "on_update received"}, status=status.HTTP_200_OK)    
 
-        
+
+
