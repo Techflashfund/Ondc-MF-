@@ -1218,7 +1218,7 @@ class OnStatus(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            if action != "on_confirm":
+            if action != "on_status":
                 return Response(
                     {"error": "Invalid action. Expected 'on_confirm'"},
                     status=status.HTTP_400_BAD_REQUEST
