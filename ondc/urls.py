@@ -14,6 +14,5 @@ urlpatterns = [
     path('on_confirm',OnConfirmSIP.as_view(),name='on_confirm'),
     path('on_status',OnStatus.as_view(),name='on_status'),
     path('on_update',OnUpdate.as_view(),name='on_update'),
-    path('selectkyc',KYCSelect.as_view(),name='selectkyc'),
 ]
 
