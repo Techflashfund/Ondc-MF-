@@ -270,7 +270,7 @@ class SIPCreationView(APIView):
           "type": provider[0]['fulfillments'][0]['type'],
           "customer": {
             "person": {
-              "id": pan
+              "id": f"pan:{pan}"
             }
           },
           "agent": {
