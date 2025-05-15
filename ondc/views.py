@@ -945,208 +945,181 @@ class ConfirmSIP(APIView):
             )
         
         payload={
-                        "context": {
-                            "location": {
-                            "country": {
-                                "code": "IND"
-                            },
-                            "city": {
-                                "code": "*"
-                            }
-                            },
-                            "domain": "ONDC:FIS14",
-                            "timestamp": timestamp,
-                            "bap_id": "investment.staging.flashfund.in",
-                            "bap_uri": "https://investment.staging.flashfund.in/ondc",
-                            "transaction_id": transaction_id,
-                            "message_id": message_id_conform,
-                            "version": "2.0.0",
-                            "ttl": "PT10M",
-                            "bpp_id": bpp_id,
-                            "bpp_uri": bpp_uri,
-                            "action": "confirm"
-                        },
-                        "message": {
-                            "order": {
-                            "id": id,
-                            "provider": {
-                                "id": provider['id']
-                            },
-                            "items": [
-                                {
-                                "id": item[0]['id'],
-                                "quantity": {
-                                    "selected": {
-                                    "measure": {
-                                        "value": "3000",
-                                        "unit": "INR"
-                                    }
-                                    }
-                                },
-                                "fulfillment_ids": [
-                                    item[0]['fulfillment_ids'][0]
-                                ],
-                                "payment_ids": [
-                                    item[0]['payment_ids'][0]
-                                ]
-                                }
-                            ],
-                            "fulfillments": [
-                                {
-                                "id": fulfillments[0]['id'],
-                                "type": fulfillments[0]['type'],
-                                "customer": {
-                                    "person": {
-                                    "id": "pan:arrpp7771n",
-                                    "creds": [
-                                        {
-                                        "id": "115.245.207.90",
-                                        "type": "IP_ADDRESS"
-                                        }
-                                    ]
-                                    },
-                                    "contact": {
-                                    "phone": "9916599123"
-                                    }
-                                },
-                                "agent": {
-                                    "person": {
-                                    "id": "euin:E52432"
-                                    },
-                                    "organization": {
-                                    "creds": [
-                                        {
-                                        "id": "ARN-124567",
-                                        "type": "ARN"
-                                        },
-                                        {
-                                        "id": "ARN-123456",
-                                        "type": "SUB_BROKER_ARN"
-                                        }
-                                    ]
-                                    }
-                                },
-                                "stops": [
-                                    {
-                                    "time": {
-                                        "schedule": {
-                                        "frequency": fulfillments[0]["tags"][0]["list"][0]["value"]
-                                        }
-                                    }
-                                    }
-                                ]
-                                }
-                            ],
-                            "payments": [
-                                {
-                                "id": payments[0]['id'],
-                                "collected_by":payments[0]['collected_by'],
-                                "status": "NOT-PAID",
-                                "params": {
-                                    "amount": "3000",
-                                    "currency": "INR",
-                                    "source_bank_code": "icic0000047",
-                                    "source_bank_account_number": "004701563111",
-                                    "source_bank_account_name": "harish gupta",
-                                    "transaction_id": "243423324"
-                                },
-                                "type": payments[0]['type'],
-                                "tags": [
-                                    {
-                                    "descriptor": {
-                                        "name": payments[0]['tags'][0]['descriptor']['name'],
-                                        "code":payments[0]['tags'][0]['descriptor']['code']
-                                    },
-                                    "list": [
-                                        {
-                                        "descriptor": {
-                                            # "name": "Account Type",
-                                            "code": payments[0]['tags'][0]['list'][0]['descriptor']['code']
-                                        },
-                                        "value": "SAVINGS"
-                                        }
-                                    ]
-                                    },
-                                    {
-                                    "descriptor": {
-                                         "name": payments[0]['tags'][0]['descriptor']['name'],
-                                        "code":payments[0]['tags'][0]['descriptor']['code']
-                                    },
-                                    "list": [
-                                        {
-                                        "descriptor": {
-                                            "code": payments[0]['tags'][0]['list'][0]['descriptor']['code']
-                                        },
-                                        "value": payments[0]['tags'][0]['list'][0]['value']
-                                        },
-                                        {
-                                        "descriptor": {
-                                            "code": "AUTH"
-                                        },
-                                        "value": "NETBANKING"
-                                        },
-                                        {
-                                        "descriptor": {
-                                            "code": "MANDATE_LIMIT"
-                                        },
-                                        "value": "50000"
-                                        }
-                                    ]
-                                    }
-                                ]
-                                }
-                            ],
-                            "tags": [
-                                {
-                                "display": False,
-                                "descriptor": {
-                                    "name": "BAP Terms of Engagement",
-                                    "code": "BAP_TERMS"
-                                },
-                                "list": [
-                                    {
-                                    "descriptor": {
-                                        "name": "Static Terms (Transaction Level)",
-                                        "code": "STATIC_TERMS"
-                                    },
-                                    "value": "https://buyerapp.com/legal/ondc:fis14/static_terms?v=0.1"
-                                    },
-                                    {
-                                    "descriptor": {
-                                        "name": "Offline Contract",
-                                        "code": "OFFLINE_CONTRACT"
-                                    },
-                                    "value": "true"
-                                    }
-                                ]
-                                },
-                                {
-                                "display": False,
-                                "descriptor": {
-                                    "name": "BPP Terms of Engagement",
-                                    "code": "BPP_TERMS"
-                                },
-                                "list": [
-                                    {
-                                    "descriptor": {
-                                        "name": "Static Terms (Transaction Level)",
-                                        "code": "STATIC_TERMS"
-                                    },
-                                    "value": "https://sellerapp.com/legal/ondc:fis14/static_terms?v=0.1"
-                                    },
-                                    {
-                                    "descriptor": {
-                                        "name": "Offline Contract",
-                                        "code": "OFFLINE_CONTRACT"
-                                    },
-                                    "value": "true"
-                                    }
-                                ]
-                                }
-                            ]
-                            }
-                        }
-                        }
+  "context": {
+    "location": {
+      "country": {
+        "code": "IND"
+      },
+      "city": {
+        "code": "*"
+      }
+    },
+    "domain": "ONDC:FIS14",
+    "timestamp": timestamp,
+    "bap_id": "investment.staging.flashfund.in",
+    "bap_uri": "https://investment.staging.flashfund.in/ondc",
+    "transaction_id": transaction_id,
+    "message_id": message_id_conform,
+    "version": "2.0.0",
+    "ttl": "PT10M",
+    "bpp_id": bpp_id,
+    "bpp_uri":bpp_uri,
+    "action": "confirm"
+  },
+  "message": {
+    "order": {
+      "id": id,
+      "provider": {
+        "id": provider['id']
+      },
+      "items": [
+        {
+          "id": item[0]['id'],
+          "quantity": {
+            "selected": {
+              "measure": {
+                "value": "3000",
+                "unit": "INR"
+              }
+            }
+          },
+          "fulfillment_ids": [
+            item[0]['fulfillment_ids'][0]
+          ],
+          "payment_ids": [
+            item[0]['payment_ids'][0]
+          ]
+        }
+      ],
+      "fulfillments": [
+        {
+          "id": fulfillments[0]['id'],
+          "type": fulfillments[0]['type'],
+          "customer": {
+            "person": {
+              "id": "pan:arrpp7771n",
+              "creds": [
+                {
+                  "id": "115.245.207.90",
+                  "type": "IP_ADDRESS"
+                }
+              ]
+            },
+            "contact": {
+              "phone": "9916599123"
+            }
+          },
+          "agent": {
+            "person": {
+              "id": "euin:E52432"
+            },
+            "organization": {
+              "creds": [
+                {
+                  "id": "ARN-124567",
+                  "type": "ARN"
+                },
+                {
+                  "id": "ARN-123456",
+                  "type": "SUB_BROKER_ARN"
+                }
+              ]
+            }
+          },
+          "stops": [
+            {
+              "time": {
+                "schedule": {
+                  "frequency": fulfillments[0]["tags"][0]["list"][0]["value"]
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "payments": [
+        {
+          "id":payments[0]['id'],
+          "collected_by": payments[0]['collected_by'],
+          "status": payments[0]['status'],
+          "params": {
+            "amount": "3000",
+            "currency": "INR",
+            "source_bank_code": "icic0000047",
+            "source_bank_account_number": "004701563111",
+            "source_bank_account_name": "harish gupta",
+            "transaction_id": "243423324"
+          },
+          "type": payments[0]['type'],
+          "tags": [
+            {
+              "descriptor": {
+                "name": payments[0]['tags'][0]['descriptor']['name'],
+                "code": payments[0]['tags'][0]['descriptor']['code']
+              },
+              "list": [
+                {
+                  "descriptor": {
+                    "code": [0]['tags'][0]['list'][0]['descriptor']['code']
+                  },
+                  "value": payments[0]['tags'][0]['list'][0]['value']
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "tags": [
+        {
+          "display": False,
+          "descriptor": {
+            "name": "BAP Terms of Engagement",
+            "code": "BAP_TERMS"
+          },
+          "list": [
+            {
+              "descriptor": {
+                "name": "Static Terms (Transaction Level)",
+                "code": "STATIC_TERMS"
+              },
+              "value": "https://buyerapp.com/legal/ondc:fis14/static_terms?v=0.1"
+            },
+            {
+              "descriptor": {
+                "name": "Offline Contract",
+                "code": "OFFLINE_CONTRACT"
+              },
+              "value": "true"
+            }
+          ]
+        },
+        {
+          "display": False,
+          "descriptor": {
+            "name": "BPP Terms of Engagement",
+            "code": "BPP_TERMS"
+          },
+          "list": [
+            {
+              "descriptor": {
+                "name": "Static Terms (Transaction Level)",
+                "code": "STATIC_TERMS"
+              },
+              "value": "https://sellerapp.com/legal/ondc:fis14/static_terms?v=0.1"
+            },
+            {
+              "descriptor": {
+                "name": "Offline Contract",
+                "code": "OFFLINE_CONTRACT"
+              },
+              "value": "true"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
         # Send to gateway
 
         request_body_str = json.dumps(payload, separators=(',', ':'))
