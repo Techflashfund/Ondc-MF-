@@ -329,7 +329,7 @@ class SIPCreationView(APIView):
     }
   }
 }
-        transaction = Transaction.objects.get(transaction_id="b0a5e831-3643-496d-8dff-97b0bcdcdf30")
+        transaction = Transaction.objects.get(transaction_id=transaction_id)
         Message.objects.create(
             transaction=transaction,
             message_id=message_id,
@@ -1457,7 +1457,7 @@ class KYCSelect(APIView):
             
 
 
-            transaction = Transaction.objects.get(transaction_id="b0a5e831-3643-496d-8dff-97b0bcdcdf30")
+            transaction = Transaction.objects.get(transaction_id=transaction_id)
             Message.objects.create(
                 transaction=transaction,
                 message_id=message_id,
