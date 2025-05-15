@@ -965,7 +965,22 @@ class ConfirmSIP(APIView):
                 {"error": f"Missing key in payload: {e}"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+        try:
+            payment_method = payments[0]['tags'][0]['list'][0]['value']
+        except (IndexError, KeyError):
+            return Response(
+                {"error": "Missing payment method in payment tags"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Determine payment type based on payment method
+        if payment_method == "MANDATE_REGISTRATION":
+            payment_type = "PRE_FULFILLMENT"
+        elif payment_method == "UPI_ON_DELIVERY":
+            payment_type = "ON_FULFILLMENT"
+        else:
+            payment_type = "POST_FULFILLMENT"
+            
         payload={
   "context": {
     "location": {
@@ -1072,7 +1087,7 @@ class ConfirmSIP(APIView):
             "source_bank_account_name": "harish gupta",
             "transaction_id": "243423324"
           },
-          "type": payments[0]['type'],
+          "type": payment_type,
           "tags": [
             {
               "descriptor": {
