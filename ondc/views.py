@@ -1060,7 +1060,7 @@ class ConfirmSIP(APIView):
               "list": [
                 {
                   "descriptor": {
-                    "code": [0]['tags'][0]['list'][0]['descriptor']['code']
+                    "code": payments[0]['tags'][0]['list'][0]['descriptor']['code']
                   },
                   "value": payments[0]['tags'][0]['list'][0]['value']
                 }
