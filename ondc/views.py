@@ -1352,10 +1352,9 @@ class OnUpdateView(APIView):
                 
 # SIP Creation with Kyc
 
-class DigiLockerFormSubmission(APIView): 
-        
+class DigiLockerFormSubmission(APIView):
+         
         def post(self,request,*args,**kwargs):
-
             transaction_id=request.data.get('transaction_id')
             bpp_id = request.data.get('bpp_id')
             bpp_uri = request.data.get('bpp_uri')
@@ -1373,6 +1372,7 @@ class DigiLockerFormSubmission(APIView):
                 id=obj.payload['message']['order']['id']
                 provider=obj.payload['message']['order']['provider']
                 item=obj.payload['message']['order']['items']
+                xinput=obj.payload['message']['order']['xinput']
                 fulfillments=obj.payload['message']['order']['fulfillments']
                 payments=obj.payload['message']['order']['payments']
             except (KeyError, TypeError) as e:
@@ -1382,120 +1382,137 @@ class DigiLockerFormSubmission(APIView):
             )
 
             payload={
-  "context": {
-    "location": {
-      "country": {
-        "code": "IND"
-      },
-      "city": {
-        "code": "*"
-      }
-    },
-    "domain": "ONDC:FIS14",
-     "timestamp": timestamp,
-    "bap_id": "investment.staging.flashfund.in",
-    "bap_uri": "https://investment.staging.flashfund.in/ondc",
-    "transaction_id": transaction_id,
-    "message_id": message_id_select,
-    "version": "2.0.0",
-    "ttl": "PT10M",
-    "bpp_id": bpp_id,
-    "bpp_uri":bpp_uri,
-    "action": "select"
-  },
-  "message": {
-    "order": {
-      "provider": {
-        "id": "amc_1"
-      },
-      "items": [
-        {
-          "id": "12391",
-          "quantity": {
-            "selected": {
-              "measure": {
-                "value": "3000",
-                "unit": "INR"
-              }
-            }
-          },
-          "fulfillment_ids": [
-            "ff_123"
-          ]
-        }
-      ],
-      "fulfillments": [
-        {
-          "id": "ff_123",
-          "type": "SIP",
-          "customer": {
-            "person": {
-              "id": "pan:arrpp7771n"
-            }
-          },
-          "agent": {
-            "person": {
-              "id": "euin:E52432"
-            },
-            "organization": {
-              "creds": [
-                {
-                  "id": "ARN-124567",
-                  "type": "ARN"
-                },
-                {
-                  "id": "ARN-123456",
-                  "type": "SUB_BROKER_ARN"
-                }
-              ]
-            }
-          },
-          "stops": [
-            {
-              "time": {
-                "schedule": {
-                  "frequency": "R6/2024-05-15/P1M"
-                }
-              }
-            }
-          ]
-        }
-      ],
-      "xinput": {
-        "form": {
-          "id": "form_2"
-        },
-        "form_response": {
-          "submission_id": "1978-5697-3478-6547"
-        }
-      },
-      "tags": [
-        {
-          "display": False,
-          "descriptor": {
-            "name": "BAP Terms of Engagement",
-            "code": "BAP_TERMS"
-          },
-          "list": [
-            {
-              "descriptor": {
-                "name": "Static Terms (Transaction Level)",
-                "code": "STATIC_TERMS"
-              },
-              "value": "https://buyerapp.com/legal/ondc:fis14/static_terms?v=0.1"
-            },
-            {
-              "descriptor": {
-                "name": "Offline Contract",
-                "code": "OFFLINE_CONTRACT"
-              },
-              "value": "true"
-            }
-          ]
-        }
-      ]
-    }
-  }
-}
+                    "context": {
+                        "location": {
+                        "country": {
+                            "code": "IND"
+                        },
+                        "city": {
+                            "code": "*"
+                        }
+                        },
+                        "domain": "ONDC:FIS14",
+                        "timestamp": timestamp,
+                        "bap_id": "investment.staging.flashfund.in",
+                        "bap_uri": "https://investment.staging.flashfund.in/ondc",
+                        "transaction_id": transaction_id,
+                        "message_id": message_id_select,
+                        "version": "2.0.0",
+                        "ttl": "PT10M",
+                        "bpp_id": bpp_id,
+                        "bpp_uri":bpp_uri,
+                        "action": "select"
+                    },
+                    "message": {
+                        "order": {
+                        "provider": {
+                            "id": provider['id']
+                        },
+                        "items": [
+                            {
+                            "id": item[0]['id'],
+                            "quantity": {
+                                "selected": {
+                                "measure": {
+                                    "value": "3000",
+                                    "unit": "INR"
+                                }
+                                }
+                            },
+                            "fulfillment_ids": [
+                                item[0]['fulfillment_ids'][0]
+                            ]
+                            }
+                        ],
+                        "fulfillments": [
+                            {
+                            "id": fulfillments[0]['id'],
+                            "type": fulfillments[0]['type'],
+                            "customer": {
+                                "person": {
+                                "id": "pan:arrpp7771n"
+                                }
+                            },
+                            "agent": {
+                                "person": {
+                                "id": "euin:E52432"
+                                },
+                                "organization": {
+                                "creds": [
+                                    {
+                                    "id": "ARN-124567",
+                                    "type": "ARN"
+                                    },
+                                    {
+                                    "id": "ARN-123456",
+                                    "type": "SUB_BROKER_ARN"
+                                    }
+                                ]
+                                }
+                            },
+                            "stops": [
+                                {
+                                "time": {
+                                    "schedule": {
+                                    "frequency": fulfillments[0]['stops'][0]['time']['schedule']['frequency']
+                                    }
+                                }
+                                }
+                            ]
+                            }
+                        ],
+                        "xinput": {
+                            "form": {
+                            "id": xinput['form']['id']
+                            },
+                            "form_response": {
+                            "submission_id": xinput['form_response']['submission_id']
+                            }
+                        },
+                        "tags": [
+                            {
+                            "display": False,
+                            "descriptor": {
+                                "name": "BAP Terms of Engagement",
+                                "code": "BAP_TERMS"
+                            },
+                            "list": [
+                                {
+                                "descriptor": {
+                                    "name": "Static Terms (Transaction Level)",
+                                    "code": "STATIC_TERMS"
+                                },
+                                "value": "https://buyerapp.com/legal/ondc:fis14/static_terms?v=0.1"
+                                },
+                                {
+                                "descriptor": {
+                                    "name": "Offline Contract",
+                                    "code": "OFFLINE_CONTRACT"
+                                },
+                                "value": "true"
+                                }
+                            ]
+                            }
+                        ]
+                        }
+                    }
+                    }
+            
 
+            # Send to gateway
 
+            request_body_str = json.dumps(payload, separators=(',', ':'))
+            auth_header = create_authorisation_header(request_body=request_body_str)
+
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": auth_header,
+                "X-Gateway-Authorization": os.getenv("SIGNED_UNIQUE_REQ_ID", ""),
+                "X-Gateway-Subscriber-Id": os.getenv("SUBSCRIBER_ID")
+            }
+
+            response = requests.post(f"{bpp_uri}/select", data=request_body_str, headers=headers) 
+            return Response({
+                    "status_code": response.status_code,
+                    "response": response.json() if response.content else {}
+                }, status=status.HTTP_200_OK)                

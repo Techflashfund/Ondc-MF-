@@ -14,5 +14,6 @@ urlpatterns = [
     path('on_confirm',OnConfirmSIP.as_view(),name='on_confirm'),
     path('on_status',OnStatusView.as_view(),name='on_status'),
     path('on_update',OnUpdateView.as_view(),name='on_update'),
+    path('digisend',DigiLockerFormSubmission.as_view(),name='digisend')
 ]
 
