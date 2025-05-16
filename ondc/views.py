@@ -1234,7 +1234,7 @@ class OnConfirmSIP(APIView):
 
         return Response({"message": "on_search received"}, status=status.HTTP_200_OK)
     
-class OnStatus(APIView):
+class OnStatusView(APIView):
     def post(self,request,*args,**kwargs):
 
         try:
@@ -1291,7 +1291,7 @@ class OnStatus(APIView):
         return Response({"message": "on_status received"}, status=status.HTTP_200_OK)    
 
 
-class OnUpdate(APIView):
+class OnUpdateView(APIView):
 
     def post(self,request,*args,**kwargs):
 
@@ -1350,4 +1350,152 @@ class OnUpdate(APIView):
 
 
                 
-                                
+# SIP Creation with Kyc
+
+class DigiLockerFormSubmission(APIView): 
+        
+        def post(self,request,*args,**kwargs):
+
+            transaction_id=request.data.get('transaction_id')
+            bpp_id = request.data.get('bpp_id')
+            bpp_uri = request.data.get('bpp_uri')
+            message_id=request.data.get('message_id')
+
+            if not all([transaction_id,bpp_id,bpp_uri,message_id]):
+                return Response({"error":"Required all Fields"},status=status.HTTP_400_BAD_REQUEST)
+            
+            obj=get_object_or_404(OnStatus,payload__context__bpp_id=bpp_id,payload__context__bpp_uri=bpp_uri,transaction__transaction_id=transaction_id,payload__context__message_id=message_id)
+            message_id_select = str(uuid.uuid4())
+            timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
+
+           
+            try:
+                id=obj.payload['message']['order']['id']
+                provider=obj.payload['message']['order']['provider']
+                item=obj.payload['message']['order']['items']
+                fulfillments=obj.payload['message']['order']['fulfillments']
+                payments=obj.payload['message']['order']['payments']
+            except (KeyError, TypeError) as e:
+                return Response(
+                    {"error": f"Missing key in payload: {e}"},
+                    status=status.HTTP_400_BAD_REQUEST
+            )
+
+            payload={
+  "context": {
+    "location": {
+      "country": {
+        "code": "IND"
+      },
+      "city": {
+        "code": "*"
+      }
+    },
+    "domain": "ONDC:FIS14",
+     "timestamp": timestamp,
+    "bap_id": "investment.staging.flashfund.in",
+    "bap_uri": "https://investment.staging.flashfund.in/ondc",
+    "transaction_id": transaction_id,
+    "message_id": message_id_select,
+    "version": "2.0.0",
+    "ttl": "PT10M",
+    "bpp_id": bpp_id,
+    "bpp_uri":bpp_uri,
+    "action": "select"
+  },
+  "message": {
+    "order": {
+      "provider": {
+        "id": "amc_1"
+      },
+      "items": [
+        {
+          "id": "12391",
+          "quantity": {
+            "selected": {
+              "measure": {
+                "value": "3000",
+                "unit": "INR"
+              }
+            }
+          },
+          "fulfillment_ids": [
+            "ff_123"
+          ]
+        }
+      ],
+      "fulfillments": [
+        {
+          "id": "ff_123",
+          "type": "SIP",
+          "customer": {
+            "person": {
+              "id": "pan:arrpp7771n"
+            }
+          },
+          "agent": {
+            "person": {
+              "id": "euin:E52432"
+            },
+            "organization": {
+              "creds": [
+                {
+                  "id": "ARN-124567",
+                  "type": "ARN"
+                },
+                {
+                  "id": "ARN-123456",
+                  "type": "SUB_BROKER_ARN"
+                }
+              ]
+            }
+          },
+          "stops": [
+            {
+              "time": {
+                "schedule": {
+                  "frequency": "R6/2024-05-15/P1M"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "xinput": {
+        "form": {
+          "id": "form_2"
+        },
+        "form_response": {
+          "submission_id": "1978-5697-3478-6547"
+        }
+      },
+      "tags": [
+        {
+          "display": False,
+          "descriptor": {
+            "name": "BAP Terms of Engagement",
+            "code": "BAP_TERMS"
+          },
+          "list": [
+            {
+              "descriptor": {
+                "name": "Static Terms (Transaction Level)",
+                "code": "STATIC_TERMS"
+              },
+              "value": "https://buyerapp.com/legal/ondc:fis14/static_terms?v=0.1"
+            },
+            {
+              "descriptor": {
+                "name": "Offline Contract",
+                "code": "OFFLINE_CONTRACT"
+              },
+              "value": "true"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+
+
