@@ -9,7 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from datetime import datetime
 import logging
 
-from .models import Transaction, Message, FullOnSearch,SelectSIP,SubmissionID,OnInitSIP,OnConfirm
+from .models import Transaction, Message, FullOnSearch,SelectSIP,SubmissionID,OnInitSIP,OnConfirm,OnStatus,OnUpdate
 from .cryptic_utils import create_authorisation_header  
 
 class ONDCSearchView(APIView):
@@ -980,7 +980,7 @@ class ConfirmSIP(APIView):
             payment_type = "ON_FULFILLMENT"
         else:
             payment_type = "POST_FULFILLMENT"
-            
+
         payload={
   "context": {
     "location": {
@@ -1277,6 +1277,13 @@ class OnStatus(APIView):
                     {"error": "Transaction not found"},
                     status=status.HTTP_404_NOT_FOUND
                 )
+            # Save to database
+            OnStatus.objects.create(
+                transaction=transaction,
+                message_id=message_id,
+                payload=data,
+                timestamp=timestamp
+            )
         except Exception as e:
             logger.error("Failed to process on_status data: %s", str(e))
             return Response({"error": "Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -1328,6 +1335,13 @@ class OnUpdate(APIView):
                     {"error": "Transaction not found"},
                     status=status.HTTP_404_NOT_FOUND
                 )
+             # Save to database
+            OnUpdate.objects.create(
+                transaction=transaction,
+                message_id=message_id,
+                payload=data,
+                timestamp=timestamp
+            )
         except Exception as e:
             logger.error("Failed to process on_updatedata: %s", str(e))
             return Response({"error": "Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
