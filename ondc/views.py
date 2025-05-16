@@ -1369,12 +1369,10 @@ class DigiLockerFormSubmission(APIView):
 
            
             try:
-                id=obj.payload['message']['order']['id']
                 provider=obj.payload['message']['order']['provider']
                 item=obj.payload['message']['order']['items']
                 xinput=obj.payload['message']['order']['xinput']
                 fulfillments=obj.payload['message']['order']['fulfillments']
-                payments=obj.payload['message']['order']['payments']
             except (KeyError, TypeError) as e:
                 return Response(
                     {"error": f"Missing key in payload: {e}"},
