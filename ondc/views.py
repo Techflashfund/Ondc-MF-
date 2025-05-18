@@ -2330,7 +2330,7 @@ class ConfirmLump(APIView):
                                 {
                                 "id": payments[0]['id'],
                                 "collected_by": payments[0]['collected_by'],
-                                "status": "NOT-PAID",
+                                "status": payments[0]['status'],
                                 "params": {
                                     "amount": "3000",
                                     "currency": "INR",
