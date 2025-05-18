@@ -19,6 +19,7 @@ urlpatterns = [
 
     # Lumpsum
     path('lumpselect',Lumpsum.as_view(),name='lumpselect'),
+    path('lumpformsub',LumpFormSub.as_view(), name='lumpformsub')
     
 ]
 
