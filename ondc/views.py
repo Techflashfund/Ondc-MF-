@@ -2027,8 +2027,10 @@ class LumpFormSub(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         except Exception as e:
+            import traceback
+            print("Unexpected error:", str(e))
+            traceback.print_exc()  # Add this line to print the full traceback in console/logs
             return Response(
                 {"error": f"Unexpected error: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )   
-
+    )
