@@ -9,7 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from datetime import datetime
 import logging
 
-from .models import Transaction, Message, FullOnSearch,SelectSIP,SubmissionID,OnInitSIP,OnConfirm,OnStatus,OnUpdate
+from .models import Transaction, Message, FullOnSearch,SelectSIP,SubmissionID,OnInitSIP,OnConfirm,OnStatus,OnUpdate,PaymentSubmisssion
 from .cryptic_utils import create_authorisation_header  
 
 class ONDCSearchView(APIView):
@@ -2236,13 +2236,32 @@ class ConfirmLump(APIView):
             item=obj.payload['message']['order']['items']
             fulfillments=obj.payload['message']['order']['fulfillments']
             payments=obj.payload['message']['order']['payments']
+            url=payments[0]['url']
         except (KeyError, TypeError) as e:
             return Response(
                 {"error": f"Missing key in payload: {e}"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
-        payload={
+        form_result = "APPROVED"
+        payload = {"formResult": form_result}
+        headers = {"Content-Type": "application/json"}
+
+        try:
+            response = requests.post(url, json=payload, headers=headers)
+            if response.status==200:
+                res=response.json
+                payment_id=res['payment_ids']
+                status_pay=res['status']
+                if not payment_id:
+                    return Response({'error':"Missing Payment ID"},status=status.HTTP_400_BAD_REQUEST)
+                PaymentSubmisssion.objects.create(
+                        transaction=obj.transaction,
+                        payment_id=payment_id,
+                        message_id=message_id,
+                        timestamp=timestamp,
+                        status_pay=status_pay
+                    )
+                payload={
                         "context": {
                             "location": {
                             "country": {
@@ -2284,9 +2303,9 @@ class ConfirmLump(APIView):
                                 "fulfillment_ids": [
                                     item[0]['fulfillment_ids'][0]
                                 ],
-                                # "payment_ids": [
-                                #     item[0]['payment_ids'][0]
-                                # ]
+                                "payment_ids": [
+                                   payment_id
+                                ]
                                 }
                             ],
                             "fulfillments": [
@@ -2330,7 +2349,7 @@ class ConfirmLump(APIView):
                                 {
                                 "id": payments[0]['id'],
                                 "collected_by": payments[0]['collected_by'],
-                                "status": payments[0]['status'],
+                                "status": status_pay,
                                 "params": {
                                     "amount": "3000",
                                     "currency": "INR",
@@ -2408,19 +2427,34 @@ class ConfirmLump(APIView):
                             }
                         }
                         }
-        
-        request_body_str = json.dumps(payload, separators=(',', ':'))
-        auth_header = create_authorisation_header(request_body=request_body_str)
+                request_body_str = json.dumps(payload, separators=(',', ':'))
+                auth_header = create_authorisation_header(request_body=request_body_str)
 
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": auth_header,
-            "X-Gateway-Authorization": os.getenv("SIGNED_UNIQUE_REQ_ID", ""),
-            "X-Gateway-Subscriber-Id": os.getenv("SUBSCRIBER_ID")
-        }
+                headers = {
+                    "Content-Type": "application/json",
+                    "Authorization": auth_header,
+                    "X-Gateway-Authorization": os.getenv("SIGNED_UNIQUE_REQ_ID", ""),
+                    "X-Gateway-Subscriber-Id": os.getenv("SUBSCRIBER_ID")
+                }
 
-        response = requests.post(f"{bpp_uri}/init", data=request_body_str, headers=headers) 
-        return Response({
-                "status_code": response.status_code,
-                "response": response.json() if response.content else {}
-            }, status=status.HTTP_200_OK)                
+                response = requests.post(f"{bpp_uri}/init", data=request_body_str, headers=headers) 
+                return Response({
+                        "status_code": response.status_code,
+                        "response": response.json() if response.content else {}
+                    }, status=status.HTTP_200_OK)   
+
+            else:
+                return Response(
+                    {"error": f"Payment Failed -- {res.status_code}"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )  
+        except requests.exceptions.RequestException as e:
+            return Response(
+                {"error": f"Form upload failed: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            return Response(
+                {"error": f"Unexpected error: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR )
+

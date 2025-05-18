@@ -86,18 +86,13 @@ class OnUpdate(models.Model):
      
 
 
-class SIPFulfillment(models.Model):
+class PaymentSubmisssion(models.Model):
     transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE)
-    fulfillment_id = models.CharField(max_length=100)
-    scheme_name = models.CharField(max_length=255)
-    customer_id = models.CharField(max_length=50)
-    agent_id = models.CharField(max_length=50, null=True, blank=True)
-    investment_amount = models.PositiveIntegerField()
-    frequency = models.CharField(max_length=50)
-    schedule_str = models.TextField()
-    thresholds = models.JSONField()
-    submission_id = models.CharField(max_length=100, null=True, blank=True)
-    raw_payload = models.JSONField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    message_id=models.CharField(max_length=100)
+    payment_id=models.CharField(max_length=100)
+    status_pay=models.CharField(max_length=100)
+    timestamp = models.DateTimeField()
 
+    def __str__(self):
+        return f"{self.transaction.transaction_id} - {self.submission_id}"
 
