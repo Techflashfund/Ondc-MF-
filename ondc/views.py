@@ -1676,3 +1676,326 @@ class EsignFormSubmission(APIView):
             }, status=status.HTTP_200_OK)   
 
 
+# Lumpsum - New Folio
+
+class Lumpsum(APIView):
+
+    def post(self,request,*args,**kwargs):
+        transaction_id=request.data.get('transaction_id')
+        bpp_id = request.data.get('bpp_id')
+        bpp_uri = request.data.get('bpp_uri')
+
+        if not all([transaction_id,bpp_id,bpp_uri]):
+            return Response({"error":"Required all Fields"},status=status.HTTP_400_BAD_REQUEST)
+        
+        obj = get_object_or_404(
+            FullOnSearch,
+            payload__context__bpp_id=bpp_id,
+            payload__context__bpp_uri=bpp_uri,
+            transaction__transaction_id=transaction_id
+        )
+
+        message_id = str(uuid.uuid4())
+        timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
+        print(obj.payload)
+
+        # Get the first provider and item
+        provider = obj.payload["message"]["catalog"]["providers"]
+
+        
+        payload={
+                "context": {
+                    "location": {
+                    "country": {
+                        "code": "IND"
+                    },
+                    "city": {
+                        "code": "*"
+                    }
+                    },
+                    "domain": "ONDC:FIS14",
+                    "timestamp": timestamp,
+                    "bap_id": "investment.staging.flashfund.in",
+                    "bap_uri": "https://investment.staging.flashfund.in/ondc",
+                    "transaction_id": transaction_id,
+                    "message_id": message_id,
+                    "version": "2.0.0",
+                    "ttl": "PT10M",
+                    "bpp_id": bpp_id,
+                    "bpp_uri": bpp_uri,
+                    "action": "select"
+                },
+                "message": {
+                    "order": {
+                    "provider": {
+                        "id": provider[0]['id']
+                    },
+                    "items": [
+                        {
+                        "id": provider[0]['items'][0]['id'],
+                        "quantity": {
+                            "selected": {
+                            "measure": {
+                                "value": "3000",
+                                "unit": "INR"
+                            }
+                            }
+                        },
+                        "fulfillment_ids": [
+                        provider[0]['fulfillments'][0]['id']
+                        ]
+                        }
+                    ],
+                    "fulfillments": [
+                        {
+                        "id": provider[0]['fulfillments'][0]['id'],
+                        "type":provider[0]['fulfillments'][0]['type'],
+                        "customer": {
+                            "person": {
+                            "id": "pan:arrpp7771n"
+                            }
+                        },
+                        "agent": {
+                            "person": {
+                            "id": "euin:E52432"
+                            },
+                            "organization": {
+                            "creds": [
+                                {
+                                "id": "ARN-124567",
+                                "type": "ARN"
+                                },
+                                {
+                                "id": "ARN-123456",
+                                "type": "SUB_BROKER_ARN"
+                                }
+                            ]
+                            }
+                        }
+                        }
+                    ],
+                    "tags": [
+                        {
+                        "display": False,
+                        "descriptor": {
+                            "name": "BAP Terms of Engagement",
+                            "code": "BAP_TERMS"
+                        },
+                        "list": [
+                            {
+                            "descriptor": {
+                                "name": "Static Terms (Transaction Level)",
+                                "code": "STATIC_TERMS"
+                            },
+                            "value": "https://buyerapp.com/legal/ondc:fis14/static_terms?v=0.1"
+                            },
+                            {
+                            "descriptor": {
+                                "name": "Offline Contract",
+                                "code": "OFFLINE_CONTRACT"
+                            },
+                            "value": "true"
+                            }
+                        ]
+                        }
+                    ]
+                    }
+                }
+                }
+        
+        transaction = Transaction.objects.get(transaction_id=transaction_id)
+        Message.objects.create(
+            transaction=transaction,
+            message_id=message_id,
+            action="select",
+            timestamp=parse_datetime(timestamp),
+            payload=payload
+        )
+
+        # Send to gateway
+        request_body_str = json.dumps(payload, separators=(',', ':'))
+        auth_header = create_authorisation_header(request_body=request_body_str)
+
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": auth_header,
+            "X-Gateway-Authorization": os.getenv("SIGNED_UNIQUE_REQ_ID", ""),
+            "X-Gateway-Subscriber-Id": os.getenv("SUBSCRIBER_ID")
+        }
+
+        response = requests.post(f"{bpp_uri}/select", data=request_body_str, headers=headers)
+
+        return Response({
+            "status_code": response.status_code,
+            "response": response.json() if response.content else {}
+        }, status=status.HTTP_200_OK)                
+
+
+class LumpFormSub(APIView):
+
+    def post(self,request,*args,**kwargs):
+        transaction_id=request.data.get('transaction_id')
+        bpp_id = request.data.get('bpp_id')
+        bpp_uri = request.data.get('bpp_uri')
+
+        if not all([transaction_id, bpp_id, bpp_uri]):
+            return Response({"error": "Missing transaction_id, bpp_id, or bpp_uri"}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        obj=get_object_or_404(SelectSIP,payload__context__bpp_id=bpp_id,payload__context__bpp_uri=bpp_uri,transaction__transaction_id=transaction_id)
+        message_id = str(uuid.uuid4())
+        timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
+
+        try:
+            provider=obj.payload['message']['order']['provider']
+            item=obj.payload['message']['order']['items']
+            fulfillments=obj.payload['message']['order']['fulfillments']
+            xinput=obj.payload["message"]["order"]["xinput"]
+            url = obj.payload["message"]["order"]["xinput"]["form"]["url"]
+
+        except (KeyError, TypeError):
+            return Response(
+                {"error": "Form URL not found in payload"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        user_kyc_data = {
+            "pan": "ABCDE1234F",
+            "dob": "1990-01-01",
+            "email": "user@example.com",
+            "name": "Ravi Kumar",
+            "gender":"Male",
+            "marital_status":"Married",
+            "occupation":"Salaried",
+            "source_of_wealth":"Business",
+            "income_range":"1L to 5L",
+            "cob":"India",
+            "pob":"Kochi",
+            "political_exposure":"no_exposure",
+            "india_tax_residency_status":"resident",
+            "mode_of_holding":"single",
+            "ca_line":"hfjfk jifl jffj",
+
+        }
+        try:
+            res = requests.post(url, json=user_kyc_data)
+            if res.status_code == 200:
+                resp_json = res.json()
+                submission_id=resp_json['submission_id']
+                if not submission_id:
+                    return Response({"error":"submission id missing"},status=status.HTTP_400_BAD_REQUEST)
+                
+                SubmissionID.objects.create(
+                    transaction=obj.transaction,
+                    submission_id=submission_id,
+                    message_id=message_id,
+                    timestamp=timestamp
+                )
+
+                payload={
+  "context": {
+    "location": {
+      "country": {
+        "code": "IND"
+      },
+      "city": {
+        "code": "*"
+      }
+    },
+    "domain": "ONDC:FIS14",
+    "timestamp": timestamp,
+    "bap_id": "investment.staging.flashfund.in",
+    "bap_uri": "https://investment.staging.flashfund.in/ondc",
+    "transaction_id": transaction_id,
+    "message_id": message_id,
+    "version": "2.0.0",
+    "ttl": "PT10M",
+    "bpp_id": bpp_id,
+    "bpp_uri": bpp_uri,
+    "action": "select"
+  },
+  "message": {
+    "order": {
+      "provider": {
+        "id": "amc_1"
+      },
+      "items": [
+        {
+          "id": "12391",
+          "quantity": {
+            "selected": {
+              "measure": {
+                "value": "3000",
+                "unit": "INR"
+              }
+            }
+          },
+          "fulfillment_ids": [
+            "ff_123"
+          ]
+        }
+      ],
+      "fulfillments": [
+        {
+          "id": "ff_123",
+          "type": "LUMPSUM",
+          "customer": {
+            "person": {
+              "id": "pan:arrpp7771n"
+            }
+          },
+          "agent": {
+            "person": {
+              "id": "euin:E52432"
+            },
+            "organization": {
+              "creds": [
+                {
+                  "id": "ARN-124567",
+                  "type": "ARN"
+                },
+                {
+                  "id": "ARN-123456",
+                  "type": "SUB_BROKER_ARN"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "xinput": {
+        "form": {
+          "id": "form_3"
+        },
+        "form_response": {
+          "submission_id": "2650edf9-e69c-45c5-b129-89838f0b716e"
+        }
+      },
+      "tags": [
+        {
+          "display": false,
+          "descriptor": {
+            "name": "BAP Terms of Engagement",
+            "code": "BAP_TERMS"
+          },
+          "list": [
+            {
+              "descriptor": {
+                "name": "Static Terms (Transaction Level)",
+                "code": "STATIC_TERMS"
+              },
+              "value": "https://buyerapp.com/legal/ondc:fis14/static_terms?v=0.1"
+            },
+            {
+              "descriptor": {
+                "name": "Offline Contract",
+                "code": "OFFLINE_CONTRACT"
+              },
+              "value": "true"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -16,5 +16,9 @@ urlpatterns = [
     path('on_update',OnUpdateView.as_view(),name='on_update'),
     path('digisend',DigiLockerFormSubmission.as_view(),name='digisend'),
     path('esignsub',EsignFormSubmission.as_view(),name='esignsub'),
+
+    # Lumpsum
+    path('lumpselect',Lumpsum.as_view,name='lumpselect'),
+    
 ]
 
