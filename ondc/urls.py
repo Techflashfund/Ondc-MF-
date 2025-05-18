@@ -18,7 +18,7 @@ urlpatterns = [
     path('esignsub',EsignFormSubmission.as_view(),name='esignsub'),
 
     # Lumpsum
-    path('lumpselect',Lumpsum.as_view,name='lumpselect'),
+    path('lumpselect',Lumpsum.as_view(),name='lumpselect'),
     
 ]
 
