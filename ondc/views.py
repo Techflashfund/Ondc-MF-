@@ -1917,7 +1917,7 @@ class LumpFormSub(APIView):
                                 "message": {
                                     "order": {
                                     "provider": {
-                                        "id": provider[0]['id']
+                                        "id": provider['id']
                                     },
                                     "items": [
                                         {
