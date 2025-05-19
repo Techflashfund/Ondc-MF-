@@ -2242,12 +2242,22 @@ class ConfirmLump(APIView):
                 {"error": f"Missing key in payload: {e}"},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        label = None
+        pay = obj.payload.get('message', {}).get('order', {}).get('payments', [])
+        if pay:
+            payment_url = pay[0].get('url', '')
+            from urllib.parse import urlparse, parse_qs
+            parsed_url = urlparse(payment_url)
+            query_params = parse_qs(parsed_url.query)
+            label = query_params.get('label', [None])[0]
+
         form_result = "APPROVED"
         payload = {"formResult": form_result}
         headers = {"Content-Type": "application/json"}
+        url_1=f"{bpp_uri}/responseFromPaymentUtility?transaction_id={transaction_id}&label={label}"
 
         try:
-            response = requests.post(url, json=payload, headers=headers)
+            response = requests.post(url_1, json=payload, headers=headers)
             if response.status_code ==200:
                 res=response.json
                 print(res)
