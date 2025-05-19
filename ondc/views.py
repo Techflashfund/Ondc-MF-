@@ -2259,6 +2259,7 @@ class ConfirmLump(APIView):
         # try:
         response = requests.post(url_1, json=payload, headers=headers)
         print(response.status_code, response.text)
+        logger.info(f"Status Code: {response.status_code}, Response: {response.text}")
         if response.status_code ==200:
             # res=response.json()
             # print(res)
