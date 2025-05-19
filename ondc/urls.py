@@ -26,7 +26,9 @@ urlpatterns = [
     # Lumpsum with KYC
 
     path('lumpdigisend',LumpsumDigiLockerSubmission.as_view(),name='lumpdigisub'),
+    path('lumpesignsub',LumpsumEsignFormSubmission.as_view(),name='lempesignsub'),
     
+
     
 ]
 
