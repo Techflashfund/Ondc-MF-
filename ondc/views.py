@@ -2256,216 +2256,216 @@ class ConfirmLump(APIView):
         headers = {"Content-Type": "application/json"}
         url_1=f"{bpp_uri}/responseFromPaymentUtility?transaction_id={transaction_id}&label={label}"
 
-        try:
-            response = requests.get(url_1, headers=headers)
-            if response.status_code ==200:
-                res=response.json()
-                print(res)
-                payment_id=res.get('payment_ids')
-                
-                if not payment_id:
-                    return Response({'error':"Missing Payment ID"},status=status.HTTP_400_BAD_REQUEST)
-                PaymentSubmisssion.objects.create(
-                        transaction=obj.transaction,
-                        payment_id=payment_id,
-                        message_id=message_id,
-                        timestamp=timestamp,
-                        status_pay=10
-                    )
-                payload={
-                        "context": {
-                            "location": {
-                            "country": {
-                                "code": "IND"
-                            },
-                            "city": {
-                                "code": "*"
-                            }
-                            },
-                            "domain": "ONDC:FIS14",
-                        "timestamp": timestamp,
-                            "bap_id": "investment.staging.flashfund.in",
-                            "bap_uri": "https://investment.staging.flashfund.in/ondc",
-                            "transaction_id": transaction_id,  
-                            "message_id": message_id_conform,
-                            "version": "2.0.0",
-                            "ttl": "PT10M",
-                            "bpp_id": bpp_id,
-                            "bpp_uri": bpp_uri,
-                            "action": "confirm"
+        # try:
+        response = requests.get(url_1, headers=headers)
+        if response.status_code ==200:
+            res=response.json()
+            print(res)
+            payment_id=res.get('payment_ids')
+            
+            if not payment_id:
+                return Response({'error':"Missing Payment ID"},status=status.HTTP_400_BAD_REQUEST)
+            PaymentSubmisssion.objects.create(
+                    transaction=obj.transaction,
+                    payment_id=payment_id,
+                    message_id=message_id,
+                    timestamp=timestamp,
+                    status_pay=10
+                )
+            payload={
+                    "context": {
+                        "location": {
+                        "country": {
+                            "code": "IND"
                         },
-                        "message": {
-                            "order": {
-                            "id":id,
-                            "provider": {
-                                "id": provider['id']
+                        "city": {
+                            "code": "*"
+                        }
+                        },
+                        "domain": "ONDC:FIS14",
+                    "timestamp": timestamp,
+                        "bap_id": "investment.staging.flashfund.in",
+                        "bap_uri": "https://investment.staging.flashfund.in/ondc",
+                        "transaction_id": transaction_id,  
+                        "message_id": message_id_conform,
+                        "version": "2.0.0",
+                        "ttl": "PT10M",
+                        "bpp_id": bpp_id,
+                        "bpp_uri": bpp_uri,
+                        "action": "confirm"
+                    },
+                    "message": {
+                        "order": {
+                        "id":id,
+                        "provider": {
+                            "id": provider['id']
+                        },
+                        "items": [
+                            {
+                            "id": item[0]['id'],
+                            "quantity": {
+                                "selected": {
+                                "measure": {
+                                    "value": "3000",
+                                    "unit": "INR"
+                                }
+                                }
                             },
-                            "items": [
-                                {
-                                "id": item[0]['id'],
-                                "quantity": {
-                                    "selected": {
-                                    "measure": {
-                                        "value": "3000",
-                                        "unit": "INR"
-                                    }
-                                    }
-                                },
-                                "fulfillment_ids": [
-                                    item[0]['fulfillment_ids'][0]
-                                ],
-                                "payment_ids": [
-                                   payment_id
-                                ]
-                                }
+                            "fulfillment_ids": [
+                                item[0]['fulfillment_ids'][0]
                             ],
-                            "fulfillments": [
-                                {
-                                "id": fulfillments[0]['id'],
-                                "type": fulfillments[0]['type'],
-                                "customer": {
-                                    "person": {
-                                    "id": "pan:arrpp7771n",
-                                    "creds": [
-                                        {
-                                        "id": "115.245.207.90",
-                                        "type": "IP_ADDRESS"
-                                        }
-                                    ]
-                                    },
-                                    "contact": {
-                                    "phone": "9916599123"
-                                    }
-                                },
-                                "agent": {
-                                    "person": {
-                                    "id": "euin:E52432"
-                                    },
-                                    "organization": {
-                                    "creds": [
-                                        {
-                                        "id": "ARN-124567",
-                                        "type": "ARN"
-                                        },
-                                        {
-                                        "id": "ARN-123456",
-                                        "type": "SUB_BROKER_ARN"
-                                        }
-                                    ]
-                                    }
-                                }
-                                }
-                            ],
-                            "payments": [
-                                {
-                                "id": payments[0]['id'],
-                                "collected_by": payments[0]['collected_by'],
-                                # "status": status_pay,
-                                "params": {
-                                    "amount": "3000",
-                                    "currency": "INR",
-                                    "source_bank_code": "icic0000047",
-                                    "source_bank_account_number": "004701563111",
-                                    "source_bank_account_name": "harish gupta"
-                                },
-                                "type": payments[0]['tags'][0]['list'][0]['value'],
-                                "tags": [
+                            "payment_ids": [
+                                payment_id
+                            ]
+                            }
+                        ],
+                        "fulfillments": [
+                            {
+                            "id": fulfillments[0]['id'],
+                            "type": fulfillments[0]['type'],
+                            "customer": {
+                                "person": {
+                                "id": "pan:arrpp7771n",
+                                "creds": [
                                     {
-                                    "descriptor": {
-                                        "name": "Payment Method",
-                                        "code": "PAYMENT_METHOD"
+                                    "id": "115.245.207.90",
+                                    "type": "IP_ADDRESS"
+                                    }
+                                ]
+                                },
+                                "contact": {
+                                "phone": "9916599123"
+                                }
+                            },
+                            "agent": {
+                                "person": {
+                                "id": "euin:E52432"
+                                },
+                                "organization": {
+                                "creds": [
+                                    {
+                                    "id": "ARN-124567",
+                                    "type": "ARN"
                                     },
-                                    "list": [
-                                        {
-                                        "descriptor": {
-                                            "code": "MODE"
-                                        },
-                                        "value": "NETBANKING"
-                                        }
-                                    ]
+                                    {
+                                    "id": "ARN-123456",
+                                    "type": "SUB_BROKER_ARN"
                                     }
                                 ]
                                 }
-                            ],
+                            }
+                            }
+                        ],
+                        "payments": [
+                            {
+                            "id": payments[0]['id'],
+                            "collected_by": payments[0]['collected_by'],
+                            # "status": status_pay,
+                            "params": {
+                                "amount": "3000",
+                                "currency": "INR",
+                                "source_bank_code": "icic0000047",
+                                "source_bank_account_number": "004701563111",
+                                "source_bank_account_name": "harish gupta"
+                            },
+                            "type": payments[0]['tags'][0]['list'][0]['value'],
                             "tags": [
                                 {
-                                "display": False,
                                 "descriptor": {
-                                    "name": "BAP Terms of Engagement",
-                                    "code": "BAP_TERMS"
+                                    "name": "Payment Method",
+                                    "code": "PAYMENT_METHOD"
                                 },
                                 "list": [
                                     {
                                     "descriptor": {
-                                        "name": "Static Terms (Transaction Level)",
-                                        "code": "STATIC_TERMS"
+                                        "code": "MODE"
                                     },
-                                    "value": "https://buyerapp.com/legal/ondc:fis14/static_terms?v=0.1"
-                                    },
-                                    {
-                                    "descriptor": {
-                                        "name": "Offline Contract",
-                                        "code": "OFFLINE_CONTRACT"
-                                    },
-                                    "value": "true"
-                                    }
-                                ]
-                                },
-                                {
-                                "display": False,
-                                "descriptor": {
-                                    "name": "BPP Terms of Engagement",
-                                    "code": "BPP_TERMS"
-                                },
-                                "list": [
-                                    {
-                                    "descriptor": {
-                                        "name": "Static Terms (Transaction Level)",
-                                        "code": "STATIC_TERMS"
-                                    },
-                                    "value": "https://sellerapp.com/legal/ondc:fis14/static_terms?v=0.1"
-                                    },
-                                    {
-                                    "descriptor": {
-                                        "name": "Offline Contract",
-                                        "code": "OFFLINE_CONTRACT"
-                                    },
-                                    "value": "true"
+                                    "value": "NETBANKING"
                                     }
                                 ]
                                 }
                             ]
                             }
+                        ],
+                        "tags": [
+                            {
+                            "display": False,
+                            "descriptor": {
+                                "name": "BAP Terms of Engagement",
+                                "code": "BAP_TERMS"
+                            },
+                            "list": [
+                                {
+                                "descriptor": {
+                                    "name": "Static Terms (Transaction Level)",
+                                    "code": "STATIC_TERMS"
+                                },
+                                "value": "https://buyerapp.com/legal/ondc:fis14/static_terms?v=0.1"
+                                },
+                                {
+                                "descriptor": {
+                                    "name": "Offline Contract",
+                                    "code": "OFFLINE_CONTRACT"
+                                },
+                                "value": "true"
+                                }
+                            ]
+                            },
+                            {
+                            "display": False,
+                            "descriptor": {
+                                "name": "BPP Terms of Engagement",
+                                "code": "BPP_TERMS"
+                            },
+                            "list": [
+                                {
+                                "descriptor": {
+                                    "name": "Static Terms (Transaction Level)",
+                                    "code": "STATIC_TERMS"
+                                },
+                                "value": "https://sellerapp.com/legal/ondc:fis14/static_terms?v=0.1"
+                                },
+                                {
+                                "descriptor": {
+                                    "name": "Offline Contract",
+                                    "code": "OFFLINE_CONTRACT"
+                                },
+                                "value": "true"
+                                }
+                            ]
+                            }
+                        ]
                         }
-                        }
-                request_body_str = json.dumps(payload, separators=(',', ':'))
-                auth_header = create_authorisation_header(request_body=request_body_str)
+                    }
+                    }
+            request_body_str = json.dumps(payload, separators=(',', ':'))
+            auth_header = create_authorisation_header(request_body=request_body_str)
 
-                headers = {
-                    "Content-Type": "application/json",
-                    "Authorization": auth_header,
-                    "X-Gateway-Authorization": os.getenv("SIGNED_UNIQUE_REQ_ID", ""),
-                    "X-Gateway-Subscriber-Id": os.getenv("SUBSCRIBER_ID")
-                }
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": auth_header,
+                "X-Gateway-Authorization": os.getenv("SIGNED_UNIQUE_REQ_ID", ""),
+                "X-Gateway-Subscriber-Id": os.getenv("SUBSCRIBER_ID")
+            }
 
-                response = requests.post(f"{bpp_uri}/init", data=request_body_str, headers=headers) 
-                return Response({
-                        "status_code": response.status_code,
-                        "response": response.json() if response.content else {}
-                    }, status=status.HTTP_200_OK)   
+            response = requests.post(f"{bpp_uri}/init", data=request_body_str, headers=headers) 
+            return Response({
+                    "status_code": response.status_code,
+                    "response": response.json() if response.content else {}
+                }, status=status.HTTP_200_OK)   
 
-            else:
-                return Response(
-                    {"error": f"Payment Failed -- {response.status_code}"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )  
-        except requests.exceptions.RequestException as e:
+        else:
             return Response(
-                {"error": f"Form upload failed: {str(e)}"},
+                {"error": f"Payment Failed -- {response.status_code}"},
                 status=status.HTTP_400_BAD_REQUEST
-            )
-        except Exception as e:
-            return Response(
-                {"error": f"Unexpected error: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR )
+            )  
+        # except requests.exceptions.RequestException as e:
+        #     return Response(
+        #         {"error": f"Form upload failed: {str(e)}"},
+        #         status=status.HTTP_400_BAD_REQUEST
+        #     )
+        # except Exception as e:
+        #     return Response(
+        #         {"error": f"Unexpected error: {str(e)}"},
+        #         status=status.HTTP_500_INTERNAL_SERVER_ERROR )
 
