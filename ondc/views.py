@@ -2261,9 +2261,7 @@ class ConfirmLump(APIView):
         print(response.status_code, response.text)
         logger.info(f"Status Code: {response.status_code}, Response: {response.text}")
         if response.status_code ==200:
-            # res=response.json()
-            # print(res)
-            # payment_id=res['payment_ids']
+            print(response)
             
             # if not payment_id:
             #     return Response({'error':"Missing Payment ID"},status=status.HTTP_400_BAD_REQUEST)
