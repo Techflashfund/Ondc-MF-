@@ -2250,8 +2250,9 @@ class ConfirmLump(APIView):
             response = requests.post(url, json=payload, headers=headers)
             if response.status==200:
                 res=response.json
+                print(res)
                 payment_id=res['payment_ids']
-                status_pay=res['status']
+                
                 if not payment_id:
                     return Response({'error':"Missing Payment ID"},status=status.HTTP_400_BAD_REQUEST)
                 PaymentSubmisssion.objects.create(
@@ -2259,7 +2260,7 @@ class ConfirmLump(APIView):
                         payment_id=payment_id,
                         message_id=message_id,
                         timestamp=timestamp,
-                        status_pay=status_pay
+                        status_pay=10
                     )
                 payload={
                         "context": {
@@ -2349,7 +2350,7 @@ class ConfirmLump(APIView):
                                 {
                                 "id": payments[0]['id'],
                                 "collected_by": payments[0]['collected_by'],
-                                "status": status_pay,
+                                # "status": status_pay,
                                 "params": {
                                     "amount": "3000",
                                     "currency": "INR",
