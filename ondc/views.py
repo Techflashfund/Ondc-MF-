@@ -2991,6 +2991,33 @@ class LumpsumExistingFolioInit(APIView):
 
             
 
+class LumpConfirmExisting(APIView):
+        def post(self,request,*args,**kwargs):
+            transaction_id=request.data.get('transaction_id')
+            bpp_id = request.data.get('bpp_id')
+            bpp_uri = request.data.get('bpp_uri')
+            message_id=request.data.get('message_id')
+
+            if not all([transaction_id,bpp_id,bpp_uri,message_id]):
+                return Response({"error":"Required all Fields"},status=status.HTTP_400_BAD_REQUEST)
+            
+            obj=get_object_or_404(OnInitSIP,payload__context__bpp_id=bpp_id,payload__context__bpp_uri=bpp_uri,transaction__transaction_id=transaction_id,payload__context__message_id=message_id)
+            message_id_conform = str(uuid.uuid4())
+            timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
+
+            try:
+                id=obj.payload['message']['order']['id']
+                provider=obj.payload['message']['order']['provider']
+                item=obj.payload['message']['order']['items']
+                fulfillments=obj.payload['message']['order']['fulfillments']
+                payments=obj.payload['message']['order']['payments']
+                url=payments[0]['url']
+            except (KeyError, TypeError) as e:
+                return Response(
+                    {"error": f"Missing key in payload: {e}"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
 
 
 
