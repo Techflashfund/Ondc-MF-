@@ -2791,3 +2791,29 @@ class LumpsumEsignFormSubmission(APIView):
         
 
 
+# Lumpsum Investment (Existing Folio - Investor selects/enters a folio)
+
+class LumpsumExistingFolioInit(APIView):
+
+    def post(self,request,*args,**kwargs):
+        transaction_id=request.data.get('transaction_id')
+        bpp_id = request.data.get('bpp_id')
+        bpp_uri = request.data.get('bpp_uri')
+        message_id=request.data.get('message_id')
+
+        if not all([transaction_id, bpp_id, bpp_uri,message_id]):
+            return Response({"error": "Missing transaction_id, bpp_id, or bpp_uri"}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        obj = get_object_or_404(
+            FullOnSearch,
+            payload__context__bpp_id=bpp_id,
+            payload__context__bpp_uri=bpp_uri,
+            transaction__transaction_id=transaction_id
+        )
+        
+        message_id = str(uuid.uuid4())
+        timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
+
+
+
