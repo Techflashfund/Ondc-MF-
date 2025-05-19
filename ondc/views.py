@@ -2248,7 +2248,7 @@ class ConfirmLump(APIView):
 
         try:
             response = requests.post(url, json=payload, headers=headers)
-            if response.status==200:
+            if response.status_code ==200:
                 res=response.json
                 print(res)
                 payment_id=res['payment_ids']
