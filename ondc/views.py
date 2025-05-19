@@ -2805,7 +2805,7 @@ class LumpsumExistingFolioInit(APIView):
                           status=status.HTTP_400_BAD_REQUEST)
         
         obj = get_object_or_404(
-            FullOnSearch,
+            SelectSIP,
             payload__context__bpp_id=bpp_id,
             payload__context__bpp_uri=bpp_uri,
             transaction__transaction_id=transaction_id
