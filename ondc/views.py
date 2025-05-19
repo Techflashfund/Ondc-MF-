@@ -2446,7 +2446,7 @@ class ConfirmLump(APIView):
 
             else:
                 return Response(
-                    {"error": f"Payment Failed -- {res.status_code}"},
+                    {"error": f"Payment Failed -- {response.status_code}"},
                     status=status.HTTP_400_BAD_REQUEST
                 )  
         except requests.exceptions.RequestException as e:
