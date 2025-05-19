@@ -2455,10 +2455,24 @@ class ConfirmLump(APIView):
                 }, status=status.HTTP_200_OK)   
 
         else:
+            error_detail = {
+                "status_code": response.status_code,
+                "response_text": response.text,  # raw text content
+                "response_json": {},  # parsed JSON if possible
+            }
+            try:
+                error_detail["response_json"] = response.json()
+            except ValueError:
+                # Response content is not JSON
+                pass
+
             return Response(
-                {"error": f"Payment Failed -- {response.status_code}"},
+                {
+                    "error": "Payment Failed",
+                    "details": error_detail
+                },
                 status=status.HTTP_400_BAD_REQUEST
-            )  
+            )
         # except requests.exceptions.RequestException as e:
         #     return Response(
         #         {"error": f"Form upload failed: {str(e)}"},
