@@ -2314,9 +2314,9 @@ class ConfirmLump(APIView):
                             "fulfillment_ids": [
                                 item[0]['fulfillment_ids'][0]
                             ],
-                            # "payment_ids": [
-                            #     payment_id
-                            # ]
+                            "payment_ids": [
+                                item[0]['payment_ids'][0]
+                            ]
                             }
                         ],
                         "fulfillments": [
@@ -2360,7 +2360,7 @@ class ConfirmLump(APIView):
                             {
                             "id": payments[0]['id'],
                             "collected_by": payments[0]['collected_by'],
-                            # "status": status_pay,
+                            "status": payments[0]['status'],
                             "params": {
                                 "amount": "3000",
                                 "currency": "INR",
