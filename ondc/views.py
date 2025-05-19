@@ -2315,9 +2315,9 @@ class ConfirmLump(APIView):
                             "fulfillment_ids": [
                                 item[0]['fulfillment_ids'][0]
                             ],
-                            "payment_ids": [
-                                payment_id
-                            ]
+                            # "payment_ids": [
+                            #     payment_id
+                            # ]
                             }
                         ],
                         "fulfillments": [
