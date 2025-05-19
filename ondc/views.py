@@ -2819,11 +2819,17 @@ class LumpsumExistingFolioInit(APIView):
             item=obj.payload['message']['order']['items']
             fulfillments=obj.payload['message']['order']['fulfillments']
             payments=obj.payload['message']['order']['payments']
-        except(KeyError,TypeError):
+        except KeyError as e:
             return Response(
-                {"error": "Form URL not found in payload"},
+                {"error": f"Missing key in payload: {e}"},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        except TypeError:
+            return Response(
+                {"error": "Invalid payload structure (possibly None or wrong type)"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         
         payload={
                 "context": {
