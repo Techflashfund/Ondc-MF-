@@ -2257,11 +2257,12 @@ class ConfirmLump(APIView):
         url_1=f"{bpp_uri}/responseFromPaymentUtility?transaction_id={transaction_id}&label={label}"
 
         # try:
-        response = requests.get(url_1, headers=headers)
+        response = requests.post(url_1, json=payload, headers=headers)
+        print(response.status_code, response.text)
         if response.status_code ==200:
             res=response.json()
             print(res)
-            payment_id=res.get('payment_ids')
+            payment_id=res['payment_ids']
             
             if not payment_id:
                 return Response({'error':"Missing Payment ID"},status=status.HTTP_400_BAD_REQUEST)
