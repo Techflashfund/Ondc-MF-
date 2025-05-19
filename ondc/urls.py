@@ -22,6 +22,11 @@ urlpatterns = [
     path('lumpformsub',LumpFormSub.as_view(), name='lumpformsub'),
     path('lumpinit',LumpINIT.as_view(),name='lumpinit'),
     path('lumpconfirm',ConfirmLump.as_view(),name='lumpconfirm'),
+
+    # Lumpsum with KYC
+
+    path('lumpdigisend',LumpsumDigiLockerSubmission.as_view(),name='lumpdigisub'),
+    
     
 ]
 
