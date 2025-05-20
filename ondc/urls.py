@@ -4,6 +4,8 @@ from .views import *
 urlpatterns = [
     path("search/", ONDCSearchView.as_view()),
     path("on_search", OnSearchView.as_view(), name="on_search"),
+
+    # SIP Creation 
     path("on_searchdata", OnSearchDataView.as_view(), name="on_search_data"),
     path('select/',SIPCreationView.as_view(),name='select'),
     path('on_select',OnSelectSIPView.as_view(),name='on_select'),
@@ -23,16 +25,19 @@ urlpatterns = [
     path('lumpinit',LumpINIT.as_view(),name='lumpinit'),
     path('lumpconfirm',ConfirmLump.as_view(),name='lumpconfirm'),
 
+    # Sip with Existing Folio
+    path('sipexistinit',SIPExixstingInit,name='sipexistinit'),
+
     # Lumpsum with KYC
 
     path('lumpdigisend',LumpsumDigiLockerSubmission.as_view(),name='lumpdigisub'),
     path('lumpesignsub',LumpsumEsignFormSubmission.as_view(),name='lempesignsub'),
 
-    # Lumpsum with Existing Kyc
+    # # Lumpsum with Existing Folio
     path('lumpexistinit',LumpsumExistingFolioInit.as_view(),name='lumpexistinit'),
     path('lumpconfirmexist',LumpConfirmExisting.as_view(),name='lumpconfirmexist'),
 
-    # Redemption 
+    # # Redemption 
     path('redempinit',RedemptionInit.as_view(),name='redempinit'),
 
 
