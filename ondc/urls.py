@@ -30,7 +30,8 @@ urlpatterns = [
 
     # Lumpsum with Existing Kyc
     path('lumpexistinit',LumpsumExistingFolioInit.as_view(),name='lumpexistinit'),
-    
+    path('lumpconfirmexist',LumpConfirmExisting.as_view(),name='lumpconfirmexist'),
+
 
     
 ]
