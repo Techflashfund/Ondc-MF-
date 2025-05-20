@@ -3458,9 +3458,7 @@ class RedemptionSelect(APIView):
                 if fulfillment_type_map.get(fid) == preferred_type),
                 None
             )
-            matching_fulfillment = next((f for f in provider["fulfillments"] if f.get("type") == preferred_type),
-            None
-        )
+            matching_fulfillment = next((f for f in provider["fulfillments"] if f.get("type") == preferred_type),None)
 
             if not matching_fulfillment:
                 return Response({"error": f"No fulfillment with type '{preferred_type}' found."},
@@ -3513,8 +3511,8 @@ class RedemptionSelect(APIView):
                     ],
                     "fulfillments": [
                         {
-                        "id": provider['fulfillments'][0]['id'],
-                        "type": provider['fulfillments'][0]['type'],
+                        "id": matching_fulfillment['id'],
+                        "type":matching_fulfillment[0]['type'],
                         "customer": {
                             "person": {
                             "id": "pan:arrpp7771n",
