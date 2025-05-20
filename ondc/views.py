@@ -3371,7 +3371,6 @@ class RedemptionInit(APIView):
             provider=obj.payload['message']['order']['provider']
             item=obj.payload['message']['order']['items']
             fulfillments=obj.payload['message']['order']['fulfillments']
-            payments=obj.payload['message']['order']['payments']
         except KeyError as e:
             return Response(
                 {"error": f"Missing key in payload: {e}"},
