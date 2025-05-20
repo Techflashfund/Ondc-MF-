@@ -32,6 +32,9 @@ urlpatterns = [
     path('lumpexistinit',LumpsumExistingFolioInit.as_view(),name='lumpexistinit'),
     path('lumpconfirmexist',LumpConfirmExisting.as_view(),name='lumpconfirmexist'),
 
+    # Redemption 
+    path('redempinit',RedemptionInit.as_view(),name='redempinit'),
+
 
     
 ]
