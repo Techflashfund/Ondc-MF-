@@ -222,10 +222,9 @@ class SIPCreationView(APIView):
         # Get the first provider and item
         provider = obj.payload["message"]["catalog"]["providers"]
         catalog = obj.payload["message"]["catalog"]
-        matching_fulfillment = next(
-            (f for f in provider.get("fulfillments", []) if f.get("type") == preferred_type),
-            None
-        )
+        matching_fulfillment = next((f for f in provider["fulfillments"] if f.get("type") == preferred_type),
+        None
+    )
 
         if not matching_fulfillment:
             return Response({"error": f"No fulfillment with type '{preferred_type}' found."},
