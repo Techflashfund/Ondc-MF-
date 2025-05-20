@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONDC Mid Cap Fund - Investment Details</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            color: #2d3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e6ed;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .detail-label {
+            color: #6b7c93;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            color: #2d3e50;
+            text-align: right;
+            max-width: 60%;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            margin: 2px;
+        }
+
+        .badge-active {
+            background: #e3fcef;
+            color: #006644;
+        }
+
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        .collapsible {
+            cursor: pointer;
+            position: relative;
+        }
+
+        .collapsible::after {
+            content: '▼';
+            position: absolute;
+            right: 0;
+            transition: transform 0.3s;
+        }
+
+        .collapsible.active::after {
+            transform: rotate(180deg);
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .detail-item {
+                flex-direction: column;
+            }
+            
+            .detail-value {
+                text-align: left;
+                max-width: 100%;
+                margin-top: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <div class="card">
+            <h1>ONDC Mid Cap Fund</h1>
+            <p>Provided by ONDC Investments</p>
+            <div class="badge badge-active">Active</div>
+        </div>
+
+        <!-- Key Details -->
+        <div class="card">
+            <h2 class="section-title">Key Features</h2>
+            <div class="grid">
+                <div class="detail-item">
+                    <span class="detail-label">Lock-in Period</span>
+                    <span class="detail-value">365 days</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Entry Load</span>
+                    <span class="detail-value">No entry load</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Exit Load</span>
+                    <span class="detail-value">1% on exit</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Investment Options -->
+        <div class="card">
+            <h2 class="section-title collapsible">Investment Options</h2>
+            <div class="grid">
+                <!-- Lumpsum -->
+                <div class="card">
+                    <h3>Lumpsum Investment</h3>
+                    <div class="detail-item">
+                        <span class="detail-label">Min Amount</span>
+                        <span class="detail-value">₹1,000</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Max Amount</span>
+                        <span class="detail-value">₹10,000</span>
+                    </div>
+                </div>
+
+                <!-- SIP Monthly -->
+                <div class="card">
+                    <h3>SIP (Monthly)</h3>
+                    <div class="detail-item">
+                        <span class="detail-label">Min Amount</span>
+                        <span class="detail-value">₹5,000/month</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Duration</span>
+                        <span class="detail-value">6-12 months</span>
+                    </div>
+                </div>
+
+                <!-- SIP Daily -->
+                <div class="card">
+                    <h3>SIP (Daily)</h3>
+                    <div class="detail-item">
+                        <span class="detail-label">Min Amount</span>
+                        <span class="detail-value">₹1,000/day</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Duration</span>
+                        <span class="detail-value">30-300 days</span>
+                    </div>
+                </div>
+
+                <!-- Redemption -->
+                <div class="card">
+                    <h3>Redemption</h3>
+                    <div class="detail-item">
+                        <span class="detail-label">Min Units</span>
+                        <span class="detail-value">1 unit</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Max Units</span>
+                        <span class="detail-value">500 units</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Important Dates -->
+        <div class="card">
+            <h2 class="section-title">Important Dates</h2>
+            <div class="grid">
+                <div class="detail-item">
+                    <span class="detail-label">NFO Period</span>
+                    <span class="detail-value">25 Jul - 10 Aug 2024</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Allotment Date</span>
+                    <span class="detail-value">15 Aug 2024</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Reopen Date</span>
+                    <span class="detail-value">16 Aug 2024</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Documents & Legal -->
+        <div class="card">
+            <h2 class="section-title">Documents & Legal</h2>
+            <div class="grid">
+                <a href="https://sellerapp.com/docs/scheme-offer.pdf" class="detail-item">
+                    Scheme Offer Document ↗
+                </a>
+                <a href="https://sellerapp.com/legal/ondc:fis14/consumer_tnc.html" class="detail-item">
+                    Terms & Conditions ↗
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add collapsible functionality
+        document.querySelectorAll('.collapsible').forEach(item => {
+            item.addEventListener('click', event => {
+                const content = item.nextElementSibling;
+                item.classList.toggle('active');
+                content.style.display = content.style.display === 'none' ? 'block' : 'none';
+            });
+        });
+
+        // Initially hide collapsible content
+        document.querySelectorAll('.collapsible').forEach(item => {
+            item.nextElementSibling.style.display = 'none';
+        });
+    </script>
+</body>
+</html>

@@ -202,6 +202,7 @@ class SIPCreationView(APIView):
         transaction_id = request.data.get('transaction_id')
         bpp_id = request.data.get('bpp_id')
         bpp_uri = request.data.get('bpp_uri')
+        preferred_type=request.data.get('preferred_type')
 
         if not all([transaction_id, bpp_id, bpp_uri]):
             return Response({"error": "Missing transaction_id, bpp_id, or bpp_uri"}, 
@@ -221,7 +222,15 @@ class SIPCreationView(APIView):
         # Get the first provider and item
         provider = obj.payload["message"]["catalog"]["providers"]
         catalog = obj.payload["message"]["catalog"]
-        sip_fulfillment = catalog["providers"][0]["fulfillments"][1]# SIP is at index 1
+        matching_fulfillment = next(
+            (f for f in provider.get("fulfillments", []) if f.get("type") == preferred_type),
+            None
+        )
+
+        if not matching_fulfillment:
+            return Response({"error": f"No fulfillment with type '{preferred_type}' found."},
+                            status=status.HTTP_404_NOT_FOUND)
+
 
         payload = {
   "context": {
@@ -265,8 +274,8 @@ class SIPCreationView(APIView):
       ],
       "fulfillments": [
         {
-          "id": provider[0]['fulfillments'][0]['id'],
-          "type": provider[0]['fulfillments'][0]['type'],
+          "id": matching_fulfillment['id'],
+          "type": matching_fulfillment['type'],
           "customer": {
             "person": {
               "id": "pan:arrpp7771n"
@@ -293,7 +302,7 @@ class SIPCreationView(APIView):
             {
               "time": {
                 "schedule": {
-                  "frequency": provider[0]['fulfillments'][0]["tags"][0]["list"][0]["value"]
+                  "frequency":matching_fulfillment["tags"][0]["list"][0]["value"]
                 }
               }
             }
@@ -328,6 +337,7 @@ class SIPCreationView(APIView):
     }
   }
 }
+        
         transaction = Transaction.objects.get(transaction_id=transaction_id)
         Message.objects.create(
             transaction=transaction,
@@ -3624,7 +3634,7 @@ class RedemptionInit(APIView):
                         }
                     },
                     "fulfillment_ids": [
-                        item[0]['fulfillment_ids'][3]
+                        item[0]['fulfillment_ids'][0]
                     ]
                     }
                 ],
