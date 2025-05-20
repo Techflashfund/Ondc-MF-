@@ -220,7 +220,7 @@ class SIPCreationView(APIView):
         print(obj.payload)
 
         # Get the first provider and item
-        provider = obj.payload["message"]["catalog"]["providers"]
+        provider = obj.payload["message"]["catalog"]["providers"][0]
         catalog = obj.payload["message"]["catalog"]
         matching_fulfillment = next((f for f in provider["fulfillments"] if f.get("type") == preferred_type),
         None
@@ -256,11 +256,11 @@ class SIPCreationView(APIView):
   "message": {
     "order": {
       "provider": {
-        "id": provider[0]['id']
+        "id": provider['id']
       },
       "items": [
         {
-          "id": provider[0]['items'][0]['id'],
+          "id": provider['items'][0]['id'],
           "quantity": {
             "selected": {
               "measure": {
