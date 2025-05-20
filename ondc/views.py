@@ -3512,7 +3512,7 @@ class RedemptionSelect(APIView):
                     "fulfillments": [
                         {
                         "id": matching_fulfillment['id'],
-                        "type":matching_fulfillment[0]['type'],
+                        "type":matching_fulfillment['type'],
                         "customer": {
                             "person": {
                             "id": "pan:arrpp7771n",
