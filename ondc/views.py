@@ -3493,11 +3493,11 @@ class RedemptionSelect(APIView):
                 "message": {
                     "order": {
                     "provider": {
-                        "id": provider[0]['id']
+                        "id": provider['id']
                     },
                     "items": [
                         {
-                        "id": provider[0]['items'][0]['id'],
+                        "id": provider['items'][0]['id'],
                         "quantity": {
                             "selected": {
                             "measure": {
@@ -3513,8 +3513,8 @@ class RedemptionSelect(APIView):
                     ],
                     "fulfillments": [
                         {
-                        "id": provider[0]['fulfillments'][0]['id'],
-                        "type": provider[0]['fulfillments'][0]['type'],
+                        "id": provider['fulfillments'][0]['id'],
+                        "type": provider['fulfillments'][0]['type'],
                         "customer": {
                             "person": {
                             "id": "pan:arrpp7771n",
