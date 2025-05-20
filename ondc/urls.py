@@ -38,6 +38,7 @@ urlpatterns = [
     path('lumpconfirmexist',LumpConfirmExisting.as_view(),name='lumpconfirmexist'),
 
     # # Redemption 
+    path('redemselect',RedemptionSelect.as_view(),name='redemselect'),
     path('redempinit',RedemptionInit.as_view(),name='redempinit'),
 
 

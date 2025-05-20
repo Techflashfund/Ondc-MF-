@@ -3426,135 +3426,153 @@ class LumpConfirmExisting(APIView):
 
 # Redemption
 
-# class RedemptionSelect(APIView):
-#         def post(self, request, *args, **kwargs):
-#             transaction_id = request.data.get('transaction_id')
-#             bpp_id = request.data.get('bpp_id')
-#             bpp_uri = request.data.get('bpp_uri')
+class RedemptionSelect(APIView):
+        def post(self, request, *args, **kwargs):
+            transaction_id = request.data.get('transaction_id')
+            bpp_id = request.data.get('bpp_id')
+            bpp_uri = request.data.get('bpp_uri')
+            preferred_type=request.data.get('preferred_type')
 
-#             if not all([transaction_id, bpp_id, bpp_uri]):
-#                 return Response({"error": "Missing transaction_id, bpp_id, or bpp_uri"}, 
-#                             status=status.HTTP_400_BAD_REQUEST)
+            if not all([transaction_id, bpp_id, bpp_uri,preferred_type]):
+                return Response({"error": "Missing transaction_id, bpp_id, or bpp_uri"}, 
+                            status=status.HTTP_400_BAD_REQUEST)
             
-#             obj = get_object_or_404(
-#                 FullOnSearch,
-#                 payload__context__bpp_id=bpp_id,
-#                 payload__context__bpp_uri=bpp_uri,
-#                 transaction__transaction_id=transaction_id
-#             )
+            obj = get_object_or_404(
+                FullOnSearch,
+                payload__context__bpp_id=bpp_id,
+                payload__context__bpp_uri=bpp_uri,
+                transaction__transaction_id=transaction_id
+            )
             
-#             message_id = str(uuid.uuid4())
-#             timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
-#             print(obj.payload)
+            message_id = str(uuid.uuid4())
+            timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
+            print(obj.payload)
 
-#             # Get the first provider and item
-#             provider = obj.payload["message"]["catalog"]["providers"]
+            # Get the first provider and item
+            provider = obj.payload["message"]["catalog"]["providers"][0]
+            catalog = obj.payload["message"]["catalog"]
+            fulfillment_type_map = {f["id"]: f["type"] for f in provider.get("fulfillments", [])}
+            matching_fulfillment_id = next(
+                (fid for item in provider.get("items", [])
+                for fid in item.get("fulfillment_ids", [])
+                if fulfillment_type_map.get(fid) == preferred_type),
+                None
+            )
+            matching_fulfillment = next((f for f in provider["fulfillments"] if f.get("type") == preferred_type),
+            None
+        )
 
-#             payload = {
-#   "context": {
-#     "location": {
-#       "country": {
-#         "code": "IND"
-#       },
-#       "city": {
-#         "code": "*"
-#       }
-#     },
-#     "domain": "ONDC:FIS14",
-#      "timestamp": timestamp,
-#     "bap_id": "investment.staging.flashfund.in",
-#     "bap_uri": "https://investment.staging.flashfund.in/ondc",
-#     "transaction_id": transaction_id,  
-#     "message_id": message_id,
-#     "version": "2.0.0",
-#     "ttl": "PT10M",
-#     "bpp_id": bpp_id,
-#     "bpp_uri": bpp_uri,
-#     "action": "select"
-#   },
-#   "message": {
-#     "order": {
-#       "provider": {
-#         "id": provider[0]['id']
-#       },
-#       "items": [
-#         {
-#           "id": provider[0]['items'][0]['id'],
-#           "quantity": {
-#             "selected": {
-#               "measure": {
-#                 "value": "3000",
-#                 "unit": "INR"
-#               }
-#             }
-#           },
-#           "fulfillment_ids": [
-#             provider[0]['items'][1]['fulfillment_ids'][0]
-#           ]
-#         }
-#       ],
-#       "fulfillments": [
-#         {
-#           "id": provider[0]['fulfillments'][0]['id'],
-#           "type": provider[0]['fulfillments'][0]['type'],
-#           "customer": {
-#             "person": {
-#               "id": "pan:arrpp7771n",
-#               "creds": [
-#                 {
-#                   "id": "78953432/32",
-#                   "type": "FOLIO"
-#                 }
-#               ]
-#             }
-#           },
-#           "agent": {
-#             "person": {
-#               "id": "euin:E52432"
-#             },
-#             "organization": {
-#               "creds": [
-#                 {
-#                   "id": "ARN-124567",
-#                   "type": "ARN"
-#                 },
-#                 {
-#                   "id": "ARN-123456",
-#                   "type": "SUB_BROKER_ARN"
-#                 }
-#               ]
-#             }
-#           }
-#         }
-#       ],
-#       "tags": [
-#         {
-#           "display": False,
-#           "descriptor": {
-#             "name": "BAP Terms of Engagement",
-#             "code": "BAP_TERMS"
-#           },
-#           "list": [
-#             {
-#               "descriptor": {
-#                 "name": "Static Terms (Transaction Level)",
-#                 "code": "STATIC_TERMS"
-#               },
-#               "value": "https://buyerapp.com/legal/ondc:fis14/static_terms?v=0.1"
-#             },
-#             {
-#               "descriptor": {
-#                 "name": "Offline Contract",
-#                 "code": "OFFLINE_CONTRACT"
-#               },
-#               "value": "true"
-#             }
-#           ]
-#         }
-#       ]
-#     }
-#   }
-# }
+            if not matching_fulfillment:
+                return Response({"error": f"No fulfillment with type '{preferred_type}' found."},
+                                status=status.HTTP_404_NOT_FOUND)
+
+
+
+            payload = {
+  "context": {
+    "location": {
+      "country": {
+        "code": "IND"
+      },
+      "city": {
+        "code": "*"
+      }
+    },
+    "domain": "ONDC:FIS14",
+     "timestamp": timestamp,
+    "bap_id": "investment.staging.flashfund.in",
+    "bap_uri": "https://investment.staging.flashfund.in/ondc",
+    "transaction_id": transaction_id,  
+    "message_id": message_id,
+    "version": "2.0.0",
+    "ttl": "PT10M",
+    "bpp_id": bpp_id,
+    "bpp_uri": bpp_uri,
+    "action": "select"
+  },
+  "message": {
+    "order": {
+      "provider": {
+        "id": provider[0]['id']
+      },
+      "items": [
+        {
+          "id": provider[0]['items'][0]['id'],
+          "quantity": {
+            "selected": {
+              "measure": {
+                "value": "3000",
+                "unit": "INR"
+              }
+            }
+          },
+          "fulfillment_ids": [
+            matching_fulfillment_id
+          ]
+        }
+      ],
+      "fulfillments": [
+        {
+          "id": provider[0]['fulfillments'][0]['id'],
+          "type": provider[0]['fulfillments'][0]['type'],
+          "customer": {
+            "person": {
+              "id": "pan:arrpp7771n",
+              "creds": [
+                {
+                  "id": "78953432/32",
+                  "type": "FOLIO"
+                }
+              ]
+            }
+          },
+          "agent": {
+            "person": {
+              "id": "euin:E52432"
+            },
+            "organization": {
+              "creds": [
+                {
+                  "id": "ARN-124567",
+                  "type": "ARN"
+                },
+                {
+                  "id": "ARN-123456",
+                  "type": "SUB_BROKER_ARN"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "tags": [
+        {
+          "display": False,
+          "descriptor": {
+            "name": "BAP Terms of Engagement",
+            "code": "BAP_TERMS"
+          },
+          "list": [
+            {
+              "descriptor": {
+                "name": "Static Terms (Transaction Level)",
+                "code": "STATIC_TERMS"
+              },
+              "value": "https://buyerapp.com/legal/ondc:fis14/static_terms?v=0.1"
+            },
+            {
+              "descriptor": {
+                "name": "Offline Contract",
+                "code": "OFFLINE_CONTRACT"
+              },
+              "value": "true"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
 
 
 class RedemptionInit(APIView):
