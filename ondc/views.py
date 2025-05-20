@@ -3469,110 +3469,128 @@ class RedemptionSelect(APIView):
 
 
             payload = {
-  "context": {
-    "location": {
-      "country": {
-        "code": "IND"
-      },
-      "city": {
-        "code": "*"
-      }
-    },
-    "domain": "ONDC:FIS14",
-     "timestamp": timestamp,
-    "bap_id": "investment.staging.flashfund.in",
-    "bap_uri": "https://investment.staging.flashfund.in/ondc",
-    "transaction_id": transaction_id,  
-    "message_id": message_id,
-    "version": "2.0.0",
-    "ttl": "PT10M",
-    "bpp_id": bpp_id,
-    "bpp_uri": bpp_uri,
-    "action": "select"
-  },
-  "message": {
-    "order": {
-      "provider": {
-        "id": provider[0]['id']
-      },
-      "items": [
-        {
-          "id": provider[0]['items'][0]['id'],
-          "quantity": {
-            "selected": {
-              "measure": {
-                "value": "3000",
-                "unit": "INR"
-              }
-            }
-          },
-          "fulfillment_ids": [
-            matching_fulfillment_id
-          ]
-        }
-      ],
-      "fulfillments": [
-        {
-          "id": provider[0]['fulfillments'][0]['id'],
-          "type": provider[0]['fulfillments'][0]['type'],
-          "customer": {
-            "person": {
-              "id": "pan:arrpp7771n",
-              "creds": [
-                {
-                  "id": "78953432/32",
-                  "type": "FOLIO"
-                }
-              ]
-            }
-          },
-          "agent": {
-            "person": {
-              "id": "euin:E52432"
-            },
-            "organization": {
-              "creds": [
-                {
-                  "id": "ARN-124567",
-                  "type": "ARN"
+                "context": {
+                    "location": {
+                    "country": {
+                        "code": "IND"
+                    },
+                    "city": {
+                        "code": "*"
+                    }
+                    },
+                    "domain": "ONDC:FIS14",
+                    "timestamp": timestamp,
+                    "bap_id": "investment.staging.flashfund.in",
+                    "bap_uri": "https://investment.staging.flashfund.in/ondc",
+                    "transaction_id": transaction_id,  
+                    "message_id": message_id,
+                    "version": "2.0.0",
+                    "ttl": "PT10M",
+                    "bpp_id": bpp_id,
+                    "bpp_uri": bpp_uri,
+                    "action": "select"
                 },
-                {
-                  "id": "ARN-123456",
-                  "type": "SUB_BROKER_ARN"
+                "message": {
+                    "order": {
+                    "provider": {
+                        "id": provider[0]['id']
+                    },
+                    "items": [
+                        {
+                        "id": provider[0]['items'][0]['id'],
+                        "quantity": {
+                            "selected": {
+                            "measure": {
+                                "value": "3000",
+                                "unit": "INR"
+                            }
+                            }
+                        },
+                        "fulfillment_ids": [
+                            matching_fulfillment_id
+                        ]
+                        }
+                    ],
+                    "fulfillments": [
+                        {
+                        "id": provider[0]['fulfillments'][0]['id'],
+                        "type": provider[0]['fulfillments'][0]['type'],
+                        "customer": {
+                            "person": {
+                            "id": "pan:arrpp7771n",
+                            "creds": [
+                                {
+                                "id": "78953432/32",
+                                "type": "FOLIO"
+                                }
+                            ]
+                            }
+                        },
+                        "agent": {
+                            "person": {
+                            "id": "euin:E52432"
+                            },
+                            "organization": {
+                            "creds": [
+                                {
+                                "id": "ARN-124567",
+                                "type": "ARN"
+                                },
+                                {
+                                "id": "ARN-123456",
+                                "type": "SUB_BROKER_ARN"
+                                }
+                            ]
+                            }
+                        }
+                        }
+                    ],
+                    "tags": [
+                        {
+                        "display": False,
+                        "descriptor": {
+                            "name": "BAP Terms of Engagement",
+                            "code": "BAP_TERMS"
+                        },
+                        "list": [
+                            {
+                            "descriptor": {
+                                "name": "Static Terms (Transaction Level)",
+                                "code": "STATIC_TERMS"
+                            },
+                            "value": "https://buyerapp.com/legal/ondc:fis14/static_terms?v=0.1"
+                            },
+                            {
+                            "descriptor": {
+                                "name": "Offline Contract",
+                                "code": "OFFLINE_CONTRACT"
+                            },
+                            "value": "true"
+                            }
+                        ]
+                        }
+                    ]
+                    }
                 }
-              ]
+                }
+            request_body_str = json.dumps(payload, separators=(',', ':'))
+            auth_header = create_authorisation_header(request_body=request_body_str)
+
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": auth_header,
+                "X-Gateway-Authorization": os.getenv("SIGNED_UNIQUE_REQ_ID", ""),
+                "X-Gateway-Subscriber-Id": os.getenv("SUBSCRIBER_ID")
             }
-          }
-        }
-      ],
-      "tags": [
-        {
-          "display": False,
-          "descriptor": {
-            "name": "BAP Terms of Engagement",
-            "code": "BAP_TERMS"
-          },
-          "list": [
-            {
-              "descriptor": {
-                "name": "Static Terms (Transaction Level)",
-                "code": "STATIC_TERMS"
-              },
-              "value": "https://buyerapp.com/legal/ondc:fis14/static_terms?v=0.1"
-            },
-            {
-              "descriptor": {
-                "name": "Offline Contract",
-                "code": "OFFLINE_CONTRACT"
-              },
-              "value": "true"
-            }
-          ]
-        }
-      ]
-    }
-  }
-}
+
+            response = requests.post(f"{bpp_uri}/select", data=request_body_str, headers=headers)
+
+            return Response({
+                "status_code": response.status_code,
+                "response": response.json() if response.content else {}
+            }, status=status.HTTP_200_OK)    
+
+
 
 
 class RedemptionInit(APIView):
