@@ -50,6 +50,8 @@ urlpatterns = [
     
     # LumpRetry
     path('lumpretryinit',LumpRetryInit.as_view(),name='lumpretryinit'),
+    path('lumpretryconfirm',LumpRetryConfirm.as_view(),name='lumpretryconfirm'),
+
 
 
 
