@@ -3808,6 +3808,205 @@ class LumpConfirmExisting(APIView):
                     "response": response.json() if response.content else {}
                 }, status=status.HTTP_200_OK)   
 
+# Lumpsum Payment Retry
+
+class LumpRetryInit(APIView):
+        def post(self,request,*args,**kwargs):
+            transaction_id=request.data.get('transaction_id')
+            bpp_id = request.data.get('bpp_id')
+            bpp_uri = request.data.get('bpp_uri')
+            message_id=request.data.get('message_id')
+
+            if not all([transaction_id, bpp_id, bpp_uri,message_id]):
+                return Response({"error": "Missing transaction_id, bpp_id, or bpp_uri"}, 
+                            status=status.HTTP_400_BAD_REQUEST)
+            
+            obj = get_object_or_404(
+                SelectSIP,
+                payload__context__bpp_id=bpp_id,
+                payload__context__bpp_uri=bpp_uri,
+                transaction__transaction_id=transaction_id
+            )
+            
+            message_id_init = str(uuid.uuid4())
+            timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
+
+            try:
+                provider=obj.payload['message']['order']['provider']
+                item=obj.payload['message']['order']['items']
+                fulfillments=obj.payload['message']['order']['fulfillments']
+                payment=obj.payload['message']['order']['payments']
+            except KeyError as e:
+                return Response(
+                    {"error": f"Missing key in payload: {e}"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            except TypeError:
+                return Response(
+                    {"error": "Invalid payload structure (possibly None or wrong type)"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            payload={
+                    "context": {
+                        "location": {
+                        "country": {
+                            "code": "IND"
+                        },
+                        "city": {
+                            "code": "*"
+                        }
+                        },
+                        "domain": "ONDC:FIS14",
+                        "timestamp": timestamp,
+                        "bap_id": "investment.staging.flashfund.in",
+                        "bap_uri": "https://investment.staging.flashfund.in/ondc",
+                        "transaction_id": transaction_id,  
+                        "message_id": message_id_init,
+                        "version": "2.0.0",
+                        "ttl": "PT10M",
+                        "bpp_id": bpp_id,
+                        "bpp_uri": bpp_uri,
+                        "action": "init"
+                    },
+                    "message": {
+                        "order": {
+                        "provider": {
+                            "id": provider['id']
+                        },
+                        "items": [
+                            {
+                            "id": item[0]['id'],
+                            "quantity": {
+                                "selected": {
+                                "measure": {
+                                    "value": "3000",
+                                    "unit": "INR"
+                                }
+                                }
+                            },
+                            "fulfillment_ids": [
+                                obj.payload['message']['order']['quote']['breakup'][0]['item']['fulfillment_ids'][0]
+                            ]
+                            }
+                        ],
+                        "fulfillments": [
+                            {
+                            "id": fulfillments[0]['id'],
+                            "type": fulfillments[0]['type'],
+                            "customer": {
+                                "person": {
+                                "id": "pan:arrpp7771n",
+                                "creds": [
+                                    {
+                                    "id": "78953432/32",
+                                    "type": "FOLIO"
+                                    },
+                                    {
+                                    "id": "115.245.207.90",
+                                    "type": "IP_ADDRESS"
+                                    }
+                                ]
+                                },
+                                "contact": {
+                                "phone": "9916599123"
+                                }
+                            },
+                            "agent": {
+                                "person": {
+                                "id": "euin:E52432"
+                                },
+                                "organization": {
+                                "creds": [
+                                    {
+                                    "id": "ARN-124567",
+                                    "type": "ARN"
+                                    },
+                                    {
+                                    "id": "ARN-123456",
+                                    "type": "SUB_BROKER_ARN"
+                                    }
+                                ]
+                                }
+                            }
+                            }
+                        ],
+                        "payments": [
+                            {
+                            "collected_by": payment[0]['collected_by'],
+                            "params": {
+                                "amount": "3000",
+                                "currency": "INR",
+                                "source_bank_code": "icic0000047",
+                                "source_bank_account_number": "004701563111",
+                                "source_bank_account_name": "harish gupta"
+                            },
+                            "type": payment[0]['type'],
+                            "tags": [
+                                {
+                                "descriptor": {
+                                    "name": "Payment Method",
+                                    "code": "PAYMENT_METHOD"
+                                },
+                                "list": [
+                                    {
+                                    "descriptor": {
+                                        "code": "MODE"
+                                    },
+                                    "value": "NETBANKING"
+                                    }
+                                ]
+                                }
+                            ]
+                            }
+                        ],
+                        "tags": [
+                            {
+                            "display": False,
+                            "descriptor": {
+                                "name": "BAP Terms of Engagement",
+                                "code": "BAP_TERMS"
+                            },
+                            "list": [
+                                {
+                                "descriptor": {
+                                    "name": "Static Terms (Transaction Level)",
+                                    "code": "STATIC_TERMS"
+                                },
+                                "value": "https://buyerapp.com/legal/ondc:fis14/static_terms?v=0.1"
+                                },
+                                {
+                                "descriptor": {
+                                    "name": "Offline Contract",
+                                    "code": "OFFLINE_CONTRACT"
+                                },
+                                "value": "true"
+                                }
+                            ]
+                            }
+                        ]
+                        }
+                    }
+                    }
+            request_body_str = json.dumps(payload, separators=(',', ':'))
+            auth_header = create_authorisation_header(request_body=request_body_str)
+
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": auth_header,
+                "X-Gateway-Authorization": os.getenv("SIGNED_UNIQUE_REQ_ID", ""),
+                "X-Gateway-Subscriber-Id": os.getenv("SUBSCRIBER_ID")
+            }
+
+            response = requests.post(f"{bpp_uri}/init", data=request_body_str, headers=headers)
+
+            return Response({
+                "status_code": response.status_code,
+                "response": response.json() if response.content else {}
+            }, status=status.HTTP_200_OK)    
+
+
+
 
 # Redemption
 
