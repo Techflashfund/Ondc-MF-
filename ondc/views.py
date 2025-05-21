@@ -1765,7 +1765,7 @@ class SIPExixstingInit(APIView):
                                 }
                             },
                             "fulfillment_ids": [
-                                item[0]['fulfillment_ids'][0]
+                                obj.payload['message']['order']['quote']['breakup'][0]['item']['fulfillment_ids'][0]
                             ]
                             }
                         ],
