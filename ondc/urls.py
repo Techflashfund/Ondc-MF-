@@ -29,6 +29,9 @@ urlpatterns = [
     path('sipexistinit',SIPExixstingInit.as_view(),name='sipexistinit'),
     path('sipexistconfirm',SIPExistingConfirm.as_view(),name='sipexistconfirm'),
 
+    # SIP Cancel By Investor
+    path('sipcancel',SIPCancel.as_view(),name='sipcancel')
+
     # Lumpsum with KYC
 
     path('lumpdigisend',LumpsumDigiLockerSubmission.as_view(),name='lumpdigisub'),
