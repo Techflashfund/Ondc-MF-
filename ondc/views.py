@@ -2158,50 +2158,67 @@ class SIPCancel(APIView):
         #     )
         
         payload={
-  "context": {
-    "location": {
-      "country": {
-        "code": "IND"
-      },
-      "city": {
-        "code": "*"
-      }
-    },
-    "domain": "ONDC:FIS14",
-    "timestamp": timestamp,
-    "bap_id": "investment.staging.flashfund.in",
-    "bap_uri": "https://investment.staging.flashfund.in/ondc",
-    "transaction_id": transaction_id,
-    "message_id": message_id_cancel,
-    "version": "2.0.0",
-    "ttl": "PT10M",
-    "bpp_id": bpp_id,
-    "bpp_uri": bpp_uri,
-    "action": "cancel"
-  },
-  "message": {
-    "order_id": order_id,
-    "cancellation_reason_id": "07",
-    "tags": [
-      {
-        "display": True,
-        "descriptor": {
-          "name": "Consumer Info",
-          "code": "CONSUMER_INFO"
-        },
-        "list": [
-          {
-            "descriptor": {
-              "name": "IP Address",
-              "code": "IP_ADDRESS"
-            },
-            "value": "115.245.207.90"
-          }
-        ]
-      }
-    ]
-  }
-}
+                "context": {
+                    "location": {
+                    "country": {
+                        "code": "IND"
+                    },
+                    "city": {
+                        "code": "*"
+                    }
+                    },
+                    "domain": "ONDC:FIS14",
+                    "timestamp": timestamp,
+                    "bap_id": "investment.staging.flashfund.in",
+                    "bap_uri": "https://investment.staging.flashfund.in/ondc",
+                    "transaction_id": transaction_id,
+                    "message_id": message_id_cancel,
+                    "version": "2.0.0",
+                    "ttl": "PT10M",
+                    "bpp_id": bpp_id,
+                    "bpp_uri": bpp_uri,
+                    "action": "cancel"
+                },
+                "message": {
+                    "order_id": order_id,
+                    "cancellation_reason_id": "07",
+                    "tags": [
+                    {
+                        "display": True,
+                        "descriptor": {
+                        "name": "Consumer Info",
+                        "code": "CONSUMER_INFO"
+                        },
+                        "list": [
+                        {
+                            "descriptor": {
+                            "name": "IP Address",
+                            "code": "IP_ADDRESS"
+                            },
+                            "value": "115.245.207.90"
+                        }
+                        ]
+                    }
+                    ]
+                }
+                }
+        request_body_str = json.dumps(payload, separators=(',', ':'))
+        auth_header = create_authorisation_header(request_body=request_body_str)
+
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": auth_header,
+            "X-Gateway-Authorization": os.getenv("SIGNED_UNIQUE_REQ_ID", ""),
+            "X-Gateway-Subscriber-Id": os.getenv("SUBSCRIBER_ID")
+        }
+
+        response = requests.post(f"{bpp_uri}/cancel", data=request_body_str, headers=headers) 
+        return Response({
+                "status_code": response.status_code,
+                "response": response.json() if response.content else {}
+            }, status=status.HTTP_200_OK)   
+
+
 
 
 class OnCancelView(APIView):
