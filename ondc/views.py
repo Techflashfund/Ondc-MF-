@@ -11,7 +11,7 @@ import logging
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 
-from .models import Transaction, Message, FullOnSearch,SelectSIP,SubmissionID,OnInitSIP,OnConfirm,OnStatus,OnUpdate,PaymentSubmisssion
+from .models import Transaction, Message, FullOnSearch,SelectSIP,SubmissionID,OnInitSIP,OnConfirm,OnStatus,OnUpdate,PaymentSubmisssion,OnCancel
 from .cryptic_utils import create_authorisation_header  
 
 class ONDCSearchView(APIView):
@@ -2125,11 +2125,142 @@ class SIPExistingConfirm(APIView):
 
 
 # Sip Cancel By tHe Investor
-# class SIPCancel(APIView):
-#      def post(self,request,*ags,**kwargs):
-#         transaction_id=request.data.get('transaction_id')
-#         bpp_id = request.data.get('bpp_id')
-#         bpp_uri = request.data.get('bpp_uri')
+class SIPCancel(APIView):
+     def post(self,request,*ags,**kwargs):
+        transaction_id=request.data.get('transaction_id')
+        bpp_id = request.data.get('bpp_id')
+        bpp_uri = request.data.get('bpp_uri')
+        message_id=request.data.get('message_id')
+
+        if not all([transaction_id, bpp_id, bpp_uri,message_id]):
+            return Response({"error": "Missing transaction_id, bpp_id, or bpp_uri"}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+        
+        obj=get_object_or_404(OnConfirm,payload__context__bpp_id=bpp_id,payload__context__bpp_uri=bpp_uri,transaction__transaction_id=transaction_id,payload__context__message_id=message_id)
+        order_id = str(uuid.uuid4())
+        message_id_cancel=str(uuid.uuid4())
+        timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
+
+        try:
+            provider=obj.payload['message']['order']['provider']
+            item=obj.payload['message']['order']['items']
+            fulfillments=obj.payload['message']['order']['fulfillments']
+            payments=obj.payload['message']['order']['payments']
+        except KeyError as e:
+            return Response(
+                {"error": f"Missing key in payload: {e}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except TypeError:
+            return Response(
+                {"error": "Invalid payload structure (possibly None or wrong type)"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        payload={
+  "context": {
+    "location": {
+      "country": {
+        "code": "IND"
+      },
+      "city": {
+        "code": "*"
+      }
+    },
+    "domain": "ONDC:FIS14",
+    "timestamp": timestamp,
+    "bap_id": "investment.staging.flashfund.in",
+    "bap_uri": "https://investment.staging.flashfund.in/ondc",
+    "transaction_id": transaction_id,
+    "message_id": message_id_cancel,
+    "version": "2.0.0",
+    "ttl": "PT10M",
+    "bpp_id": bpp_id,
+    "bpp_uri": bpp_uri,
+    "action": "cancel"
+  },
+  "message": {
+    "order_id": order_id,
+    "cancellation_reason_id": "07",
+    "tags": [
+      {
+        "display": True,
+        "descriptor": {
+          "name": "Consumer Info",
+          "code": "CONSUMER_INFO"
+        },
+        "list": [
+          {
+            "descriptor": {
+              "name": "IP Address",
+              "code": "IP_ADDRESS"
+            },
+            "value": "115.245.207.90"
+          }
+        ]
+      }
+    ]
+  }
+}
+
+
+class OnCancelView(APIView):
+    def post(self,request,*args,**kwargs):
+        try:
+            data = request.data
+            logger.info("Received on_confirm payload: %s", data)
+            print("Received on_cancel payload:", json.dumps(data, indent=2))
+
+            context = data.get("context", {})
+            message_id = context.get("message_id")
+            transaction_id = context.get("transaction_id")
+            timestamp_str = context.get("timestamp")
+            action = context.get("action")
+
+             # Validate context fields
+            if not all([message_id, transaction_id, timestamp_str, action]):
+                return Response(
+                    {"error": "Missing required fields in context"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            if action != "on_cancel":
+                return Response(
+                    {"error": "Invalid action. Expected 'on_cancel'"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Validate timestamp
+            timestamp = parse_datetime(timestamp_str)
+            if not timestamp:
+                return Response(
+                    {"error": "Invalid timestamp format"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Validate transaction
+            try:
+                transaction = Transaction.objects.get(transaction_id=transaction_id)
+            except Transaction.DoesNotExist:
+                logger.warning("Transaction not found: %s", transaction_id)
+                return Response(
+                    {"error": "Transaction not found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+             # Save to database
+            OnCancel.objects.create(
+                transaction=transaction,
+                message_id=message_id,
+                payload=data,
+                timestamp=timestamp
+            )
+
+        except Exception as e:
+            logger.error("Failed to process on_search data: %s", str(e))
+            return Response({"error": "Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({"message": "on_search received"}, status=status.HTTP_200_OK)
 
 
 # Lumpsum - New Folio
