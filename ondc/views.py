@@ -1942,8 +1942,8 @@ class SIPExistingConfirm(APIView):
                     "message_id": message_id_confirm,
                     "version": "2.0.0",
                     "ttl": "PT10M",
-                    "bpp_id": "api.sellerapp.com",
-                    "bpp_uri": "https://api.sellerapp.com/ondc",
+                    "bpp_id": bpp_id,
+                    "bpp_uri": bpp_uri,
                     "action": "confirm"
                 },
                 "message": {
