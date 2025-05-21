@@ -31,6 +31,7 @@ urlpatterns = [
 
     # SIP Cancel By Investor
     path('sipcancel',SIPCancel.as_view(),name='sipcancel'),
+    path('on_cancel', OnCancelView.as_view(),name='on_cancel'),
 
     # Lumpsum with KYC
 
