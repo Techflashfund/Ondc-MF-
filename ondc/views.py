@@ -1688,7 +1688,7 @@ class EsignFormSubmission(APIView):
 
 
 # SIP Creation (Existing Folio - Investor selects/enters a folio)
-@method_decorator(csrf_exempt, name='dispatch')
+
 class SIPExixstingInit(APIView):
     def post(self,request,*args,**kwargs):
         transaction_id=request.data.get('transaction_id')
