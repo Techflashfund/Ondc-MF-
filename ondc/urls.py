@@ -30,7 +30,7 @@ urlpatterns = [
     path('sipexistconfirm',SIPExistingConfirm.as_view(),name='sipexistconfirm'),
 
     # SIP Cancel By Investor
-    path('sipcancel',SIPCancel.as_view(),name='sipcancel')
+    path('sipcancel',SIPCancel.as_view(),name='sipcancel'),
 
     # Lumpsum with KYC
 
