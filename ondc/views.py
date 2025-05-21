@@ -2130,32 +2130,32 @@ class SIPCancel(APIView):
         transaction_id=request.data.get('transaction_id')
         bpp_id = request.data.get('bpp_id')
         bpp_uri = request.data.get('bpp_uri')
-        message_id=request.data.get('message_id')
+        # message_id=request.data.get('message_id')
 
-        if not all([transaction_id, bpp_id, bpp_uri,message_id]):
+        if not all([transaction_id, bpp_id, bpp_uri]):
             return Response({"error": "Missing transaction_id, bpp_id, or bpp_uri"}, 
                           status=status.HTTP_400_BAD_REQUEST)
         
-        obj=get_object_or_404(OnConfirm,payload__context__bpp_id=bpp_id,payload__context__bpp_uri=bpp_uri,transaction__transaction_id=transaction_id,payload__context__message_id=message_id)
+        # obj=get_object_or_404(OnConfirm,payload__context__bpp_id=bpp_id,payload__context__bpp_uri=bpp_uri,transaction__transaction_id=transaction_id,payload__context__message_id=message_id)
         order_id = str(uuid.uuid4())
         message_id_cancel=str(uuid.uuid4())
         timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
 
-        try:
-            provider=obj.payload['message']['order']['provider']
-            item=obj.payload['message']['order']['items']
-            fulfillments=obj.payload['message']['order']['fulfillments']
-            payments=obj.payload['message']['order']['payments']
-        except KeyError as e:
-            return Response(
-                {"error": f"Missing key in payload: {e}"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        except TypeError:
-            return Response(
-                {"error": "Invalid payload structure (possibly None or wrong type)"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        # try:
+        #     provider=obj.payload['message']['order']['provider']
+        #     item=obj.payload['message']['order']['items']
+        #     fulfillments=obj.payload['message']['order']['fulfillments']
+        #     payments=obj.payload['message']['order']['payments']
+        # except KeyError as e:
+        #     return Response(
+        #         {"error": f"Missing key in payload: {e}"},
+        #         status=status.HTTP_400_BAD_REQUEST
+        #     )
+        # except TypeError:
+        #     return Response(
+        #         {"error": "Invalid payload structure (possibly None or wrong type)"},
+        #         status=status.HTTP_400_BAD_REQUEST
+        #     )
         
         payload={
   "context": {
