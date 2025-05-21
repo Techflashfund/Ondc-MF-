@@ -4291,7 +4291,7 @@ class LumpRetryUpdate(APIView):
                     "action": "update"
                 },
                 "message": {
-                    "update_target": payment,
+                    "update_target": 'order.payments',
                     "order": {
                     "id": obj.payload['message']['order']['id'],
                     "payments": [
