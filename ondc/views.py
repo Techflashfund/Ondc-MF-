@@ -8,6 +8,7 @@ from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
 from datetime import datetime
 import logging
+from django.views.decorators.csrf import csrf_exempt
 
 from .models import Transaction, Message, FullOnSearch,SelectSIP,SubmissionID,OnInitSIP,OnConfirm,OnStatus,OnUpdate,PaymentSubmisssion
 from .cryptic_utils import create_authorisation_header  
@@ -1686,7 +1687,7 @@ class EsignFormSubmission(APIView):
 
 
 # SIP Creation (Existing Folio - Investor selects/enters a folio)
-
+@method_decorator(csrf_exempt, name='dispatch')
 class SIPExixstingInit(APIView):
 
     def post(self,request,*args,**kwargs):
