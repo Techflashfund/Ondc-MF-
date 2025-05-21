@@ -27,6 +27,7 @@ urlpatterns = [
 
     # Sip with Existing Folio
     path('sipexistinit',SIPExixstingInit.as_view(),name='sipexistinit'),
+    path('sipexistconfirm',SIPExistingConfirm.as_view(),name='sipexistconfirm'),
 
     # Lumpsum with KYC
 
