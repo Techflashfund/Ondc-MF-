@@ -93,6 +93,9 @@ DATABASES = {
     }
 }
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://investment.staging.flashfund.in",
+]
 
 
 # Password validation

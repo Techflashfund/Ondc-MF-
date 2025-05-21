@@ -1690,7 +1690,6 @@ class EsignFormSubmission(APIView):
 # SIP Creation (Existing Folio - Investor selects/enters a folio)
 @method_decorator(csrf_exempt, name='dispatch')
 class SIPExixstingInit(APIView):
-
     def post(self,request,*args,**kwargs):
         transaction_id=request.data.get('transaction_id')
         bpp_id = request.data.get('bpp_id')
@@ -1894,7 +1893,12 @@ class SIPExixstingInit(APIView):
                 "response": response.json() if response.content else {}
             }, status=status.HTTP_200_OK)   
 
-
+# Sip Cancel By tHe Investor
+# class SIPCancel(APIView):
+#      def post(self,request,*ags,**kwargs):
+#         transaction_id=request.data.get('transaction_id')
+#         bpp_id = request.data.get('bpp_id')
+#         bpp_uri = request.data.get('bpp_uri')
 
 
 # Lumpsum - New Folio
