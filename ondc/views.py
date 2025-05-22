@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.utils.dateparse import parse_datetime
 import uuid, json, os, requests
+from threading import Thread
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
@@ -13,6 +14,7 @@ from django.utils.decorators import method_decorator
 
 from .models import Transaction, Message, FullOnSearch,SelectSIP,SubmissionID,OnInitSIP,OnConfirm,OnStatus,OnUpdate,PaymentSubmisssion,OnCancel
 from .cryptic_utils import create_authorisation_header  
+from .tasks import SIPFlowManager
 
 class ONDCSearchView(APIView):
     def post(self, request, *args, **kwargs):
@@ -189,12 +191,6 @@ class OnSearchDataView(APIView):
         except Exception as e:
             logger.error("Failed to fetch FullOnSearch data: %s", str(e))
             return Response({"error": "Server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-
-        
-
-
     
 # SIP Creation Without KYC
 
@@ -360,6 +356,9 @@ class SIPCreationView(APIView):
         }
 
         response = requests.post(f"{bpp_uri}/select", data=request_body_str, headers=headers)
+        
+        manager = SIPFlowManager(transaction, provider, payload, bpp_uri)
+        Thread(target=manager.start).start()
 
         return Response({
             "status_code": response.status_code,
