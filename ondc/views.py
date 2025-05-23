@@ -357,8 +357,6 @@ class SIPCreationView(APIView):
 
         response = requests.post(f"{bpp_uri}/select", data=request_body_str, headers=headers)
         
-        manager = SIPFlowManager(transaction, provider, payload, bpp_uri)
-        Thread(target=manager.start).start()
 
         return Response({
             "status_code": response.status_code,
