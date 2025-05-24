@@ -22,15 +22,13 @@ from .models import OnIssue
 class IGMIssue(APIView):
     def post(self,request,*args,**kwargs):
         transaction_id = request.data.get('transaction_id')
-        message_id = request.data.get('message_id')
         bpp_id = request.data.get('bpp_id')
         bpp_uri = request.data.get('bpp_uri')
 
-        if not all([transaction_id , message_id]):
-            transaction_id = str(uuid.uuid4())
-            message_id = str(uuid.uuid4())
+        
+        message_id = str(uuid.uuid4())
 
-        if not all([bpp_id,bpp_uri]):
+        if not all([bpp_id,bpp_uri,transaction_id]):
             return Response({"errror":"Seller ID Required"})
         
         timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
