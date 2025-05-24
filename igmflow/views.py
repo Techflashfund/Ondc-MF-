@@ -24,6 +24,7 @@ class IGMIssue(APIView):
         transaction_id = request.data.get('transaction_id')
         bpp_id = request.data.get('bpp_id')
         bpp_uri = request.data.get('bpp_uri')
+        category=request.data.get('category')
 
         
         message_id = str(uuid.uuid4())
@@ -58,7 +59,7 @@ class IGMIssue(APIView):
                 "message": {
                     "issue": {
                     "id": "1",
-                    "category": "FULFILMENT",
+                    "category": category,
                     "sub_category": "FLM01",
                     "complainant_info": {
                         "person": {
@@ -76,7 +77,7 @@ class IGMIssue(APIView):
                     },
                     "description": {
                         "short_desc": "Delay in disbursement/not disbursed",
-                        "Long_desc": "Loan not disbursed by the lender",
+                        "long_desc": "Loan not disbursed by the lender",
                         "additional_desc": {
                         "url": "https://buyerapp.com/additonal-details/desc.txt",
                         "content_type": "text/plain"
@@ -111,7 +112,10 @@ class IGMIssue(APIView):
                             "contact": {
                                 "phone": "9450394039",
                                 "email": "buyerapp@interface.com"
-                            }
+                            },
+                             "person": {
+                            "id": "pan:arrpp7771n"
+                        }
                             }
                         }
                         ]
@@ -269,7 +273,7 @@ class IssueStatusView(APIView):
                     }
                     },
                     "action": "issue_status",
-                    "core_version": "2.0.0",
+                    "version": "2.0.0",
                     "bap_id": "investment.staging.flashfund.in",
                     "bap_uri": "https://investment.staging.flashfund.in/igm",
                     "bpp_id": bpp_id,
@@ -425,7 +429,8 @@ class IssueCloseView(APIView):
                     "bpp_uri": bpp_uri,
                     "transaction_id": transaction_id,
                     "message_id": message_id,
-                    "timestamp": timestamp
+                    "timestamp": timestamp,
+                    "ttl": "PT30S"
                 },
                 "message": {
                     "issue": {
