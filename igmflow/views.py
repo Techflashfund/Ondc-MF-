@@ -15,7 +15,7 @@ from django.utils.decorators import method_decorator
 from ondc.models import Transaction,Message
 from ondc.cryptic_utils import create_authorisation_header
 
-from .models import OnIssue
+from .models import OnIssue,OnIssueStatus
 
 
 
@@ -175,7 +175,7 @@ class OnIssueView(APIView):
 
             if action != "on_issue":
                 return Response(
-                    {"error": "Invalid action. Expected 'on_select'"},
+                    {"error": "Invalid action. Expected 'on_issue'"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
@@ -235,3 +235,154 @@ class OnIssueView(APIView):
             )
 
 
+
+class IssueStatusView(APIView):
+     
+     def post(self,request,*args,**kwargs):
+        transaction_id = request.data.get('transaction_id')
+        bpp_id = request.data.get('bpp_id')
+        bpp_uri = request.data.get('bpp_uri')
+        message_id=request.data.get('message_id')
+
+        
+        message_id_status = str(uuid.uuid4())
+
+        if not all([bpp_id,bpp_uri,transaction_id,message_id]):
+            return Response({"errror":"Seller ID Required"})
+        
+        timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
+
+
+        obj=get_object_or_404(OnIssue,payload__context__bpp_id=bpp_id,payload__context__bpp_uri=bpp_uri,transaction__transaction_id=transaction_id,payload__context__message_id=message_id)
+
+
+
+        payload={
+                "context": {
+                    "domain": "ONDC:FIS14",
+                    "location": {
+                    "country": {
+                        "code": "IND"
+                    },
+                    "city": {
+                        "code": "*"
+                    }
+                    },
+                    "action": "issue_status",
+                    "core_version": "2.0.0",
+                    "bap_id": "investment.staging.flashfund.in",
+                    "bap_uri": "https://investment.staging.flashfund.in/igm",
+                    "bpp_id": bpp_id,
+                    "bpp_uri": bpp_uri,
+                    "transaction_id": transaction_id,
+                    "message_id": message_id_status,
+                    "timestamp":timestamp,
+                    "ttl": "PT30S"
+                },
+                "message": {
+                    "issue_id": obj.payload['message']['issue']['id']
+                }
+                }
+        
+        # Send to gateway
+        request_body_str = json.dumps(payload, separators=(',', ':'))
+        auth_header = create_authorisation_header(request_body=request_body_str)
+
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": auth_header,
+            "X-Gateway-Authorization": os.getenv("SIGNED_UNIQUE_REQ_ID", ""),
+            "X-Gateway-Subscriber-Id": os.getenv("SUBSCRIBER_ID")
+        }
+
+        response = requests.post(f"{bpp_uri}/issue_status", data=request_body_str, headers=headers)
+
+        return Response({
+            "status_code": response.status_code,
+            "response": response.json() if response.content else {}
+        }, status=status.HTTP_200_OK)
+
+
+
+class OnIssueStatusView(APIView):
+    def post(self,request,*args,**kwargs):
+
+       
+        try:
+            data = request.data
+            logger.info("Received on_select payload: %s", data)
+            print("Received on_select payload:", json.dumps(data, indent=2))
+
+            context = data.get("context", {})
+            message_id = context.get("message_id")
+            transaction_id = context.get("transaction_id")
+            timestamp_str = context.get("timestamp")
+            action = context.get("action")
+
+             # Validate context fields
+            if not all([message_id, transaction_id, timestamp_str, action]):
+                return Response(
+                    {"error": "Missing required fields in context"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            if action != "on_issue_status":
+                return Response(
+                    {"error": "Invalid action. Expected 'on_issue_status'"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Validate timestamp
+            timestamp = parse_datetime(timestamp_str)
+            if not timestamp:
+                return Response(
+                    {"error": "Invalid timestamp format"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Validate transaction
+            try:
+                transaction = Transaction.objects.get(transaction_id=transaction_id)
+            except Transaction.DoesNotExist:
+                logger.warning("Transaction not found: %s", transaction_id)
+                return Response(
+                    {"error": "Transaction not found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+
+            OnIssueStatus.objects.create(
+                transaction=transaction,
+                message_id=message_id,
+                payload=data,
+                timestamp=timestamp
+            )
+        
+            # If all validations pass
+            logger.info("on_select validation passed, sending ACK")
+            return Response(
+                {
+                    "message": {
+                        "ack": {
+                            "status": "ACK"
+                        }
+                    }
+                },
+                status=status.HTTP_200_OK
+            )
+           
+                
+
+        except Exception as e:
+            logger.error("Failed to process on_select: %s", str(e), exc_info=True)
+            return Response(
+                {
+                    "message": {
+                        "ack": {
+                            "status": "NACK",
+                            "description": "Internal server error"
+                        }
+                    }
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
