@@ -386,3 +386,111 @@ class OnIssueStatusView(APIView):
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+class IssueCloseView(APIView):
+
+    def post(self,request,*args,**kwargs):
+        transaction_id = request.data.get('transaction_id')
+        bpp_id = request.data.get('bpp_id')
+        bpp_uri = request.data.get('bpp_uri')
+        message_id=request.data.get('message_id')
+
+        
+        message_id_status = str(uuid.uuid4())
+
+        if not all([bpp_id,bpp_uri,transaction_id,message_id]):
+            return Response({"errror":"Seller ID Required"})
+        
+        timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
+
+
+        obj=get_object_or_404(OnIssue,payload__context__bpp_id=bpp_id,payload__context__bpp_uri=bpp_uri,transaction__transaction_id=transaction_id,payload__context__message_id=message_id)
+
+        payload={
+                "context": {
+                    "domain": "ONDC:FIS14",
+                    "location": {
+                    "country": {
+                        "code": "IND"
+                    },
+                    "city": {
+                        "code": "*"
+                    }
+                    },
+                    "action": "issue",
+                    "version": "2.0.0",
+                    "bap_id": "investment.staging.flashfund.in",
+                    "bap_uri": "https://investment.staging.flashfund.in/igm",
+                    "bpp_id": bpp_id,
+                    "bpp_uri": bpp_uri,
+                    "transaction_id": transaction_id,
+                    "message_id": message_id,
+                    "timestamp": timestamp
+                },
+                "message": {
+                    "issue": {
+                    "id": obj.payload['message']['issue']['id'],
+                    "status": "CLOSED",
+                    "issue_actions": {
+                        "complainant_actions": [
+                        {
+                            "complainant_action": "OPEN",
+                            "short_desc": "test, Complaint created",
+                            "updated_at":timestamp,
+                            "updated_by": {
+                            "org": {
+                                "name": "sellerapp.com/ondc"
+                            },
+                            "contact": {
+                                "phone": "9963548005",
+                                "email": "buyer@adya.ai"
+                            },
+                            "person": {
+                                "name": "Buyer Admin"
+                            }
+                            }
+                        },
+                        {
+                            "complainant_action": "CLOSE",
+                            "short_desc": "Complaint closed",
+                            "updated_at": timestamp,
+                            "updated_by": {
+                            "org": {
+                                "name": "preprod.ondc.adya.ai::ONDC:RET12"
+                            },
+                            "contact": {
+                                "phone": "9963548005",
+                                "email": "buyer@adya.ai"
+                            },
+                            "person": {
+                                "name": "Buyer Admin"
+                            }
+                            }
+                        }
+                        ]
+                    },
+                    "rating": "THUMBS-UP",
+                    "created_at": timestamp,
+                    "updated_at": timestamp
+                    }
+                }
+                }
+        
+        request_body_str = json.dumps(payload, separators=(',', ':'))
+        auth_header = create_authorisation_header(request_body=request_body_str)
+
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": auth_header,
+            "X-Gateway-Authorization": os.getenv("SIGNED_UNIQUE_REQ_ID", ""),
+            "X-Gateway-Subscriber-Id": os.getenv("SUBSCRIBER_ID")
+        }
+
+        response = requests.post(f"{bpp_uri}/issue", data=request_body_str, headers=headers)
+
+        return Response({
+            "status_code": response.status_code,
+            "response": response.json() if response.content else {}
+        }, status=status.HTTP_200_OK)
+
+
