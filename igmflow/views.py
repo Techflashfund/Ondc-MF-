@@ -59,7 +59,7 @@ class IGMIssue(APIView):
                 "message": {
                     "issue": {
                     "id": "1",
-                    "category": [category],
+                    "category": category,
                     "sub_category": "FLM01",
                     "complainant_info": {
                         "person": {
