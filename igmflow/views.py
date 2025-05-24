@@ -59,7 +59,7 @@ class IGMIssue(APIView):
                 "message": {
                     "issue": {
                     "id": "1",
-                    "category": category,
+                    "category": [category],
                     "sub_category": "FLM01",
                     "complainant_info": {
                         "person": {
@@ -113,9 +113,9 @@ class IGMIssue(APIView):
                                 "phone": "9450394039",
                                 "email": "buyerapp@interface.com"
                             },
-                             "person": {
-                            "id": "pan:arrpp7771n"
-                        }
+                            "person": {
+                        "name": "Sam Manuel"
+                        },
                             }
                         }
                         ]
@@ -408,7 +408,7 @@ class IssueCloseView(APIView):
         timestamp = datetime.utcnow().isoformat(sep="T", timespec="milliseconds") + "Z"
 
 
-        obj=get_object_or_404(OnIssue,payload__context__bpp_id=bpp_id,payload__context__bpp_uri=bpp_uri,transaction__transaction_id=transaction_id,payload__context__message_id=message_id)
+        obj=get_object_or_404(OnIssueStatus,payload__context__bpp_id=bpp_id,payload__context__bpp_uri=bpp_uri,transaction__transaction_id=transaction_id,payload__context__message_id=message_id)
 
         payload={
                 "context": {
