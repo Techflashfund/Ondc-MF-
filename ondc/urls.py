@@ -45,7 +45,16 @@ urlpatterns = [
     # # Redemption 
     path('redemselect',RedemptionSelect.as_view(),name='redemselect'),
     path('redempinit',RedemptionInit.as_view(),name='redempinit'),
-    path('redempconfirm',RedemptionConfirm.as_view(),name='redempconfirm')
+    path('redempconfirm',RedemptionConfirm.as_view(),name='redempconfirm'),
+
+    
+    # LumpRetry
+    path('lumpretryinit',LumpRetryInit.as_view(),name='lumpretryinit'),
+    path('lumpretryconfirm',LumpRetryConfirm.as_view(),name='lumpretryconfirm'),
+    path('lumpupdate',LumpRetryUpdate.as_view(),name='lumpupdate'),
+
+
+
 
 
 ]
